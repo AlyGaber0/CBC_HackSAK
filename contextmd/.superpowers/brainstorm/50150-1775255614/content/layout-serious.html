@@ -1,0 +1,152 @@
+<h2>Same three models — serious, clinical tone</h2>
+<p class="subtitle">No emojis, no gradients on buttons, blue/indigo used as accent only. Which interaction model works best?</p>
+
+<div class="split" style="gap:16px;align-items:flex-start">
+
+  <!-- Option A: Chat - serious -->
+  <div class="mockup" data-choice="chat" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header" style="background:#1e3a5f;color:#e0f2fe">A — Conversational</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:380px;display:flex;flex-direction:column">
+      <!-- Top bar -->
+      <div style="background:#1e3a5f;padding:10px 14px;display:flex;align-items:center;gap:8px">
+        <div style="width:6px;height:6px;background:#22c55e;border-radius:50%"></div>
+        <span style="font-size:11px;font-weight:600;color:#e0f2fe;letter-spacing:1px;text-transform:uppercase">Triaje — Intake Assessment</span>
+      </div>
+      <!-- Chat area -->
+      <div style="flex:1;padding:16px;overflow:hidden">
+        <!-- Bot -->
+        <div style="display:flex;gap:10px;margin-bottom:14px;align-items:flex-start">
+          <div style="width:26px;height:26px;background:#1e3a5f;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+            <span style="color:#bae6fd;font-size:10px;font-weight:700">T</span>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:2px 8px 8px 8px;padding:10px 13px;max-width:80%;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+            <p style="margin:0;font-size:13px;color:#1e293b;line-height:1.6">To begin, I need to understand what you're experiencing. <strong>Which part of your body is affected?</strong></p>
+          </div>
+        </div>
+        <!-- Quick options under bot message -->
+        <div style="margin-left:36px;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+          <span style="font-size:11px;padding:5px 11px;border:1px solid #cbd5e1;border-radius:4px;color:#334155;background:#fff;cursor:pointer">Head / Neck</span>
+          <span style="font-size:11px;padding:5px 11px;border:1px solid #cbd5e1;border-radius:4px;color:#334155;background:#fff;cursor:pointer">Chest / Back</span>
+          <span style="font-size:11px;padding:5px 11px;border:1px solid #1d4ed8;border-radius:4px;color:#1d4ed8;background:#eff6ff;cursor:pointer;font-weight:500">Arm / Hand ✓</span>
+          <span style="font-size:11px;padding:5px 11px;border:1px solid #cbd5e1;border-radius:4px;color:#334155;background:#fff;cursor:pointer">Abdomen</span>
+        </div>
+        <!-- User reply -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <div style="background:#1d4ed8;border-radius:8px 2px 8px 8px;padding:9px 13px;max-width:70%">
+            <p style="margin:0;font-size:13px;color:#fff;line-height:1.5">Left arm — a mole that has changed colour</p>
+          </div>
+        </div>
+        <!-- Bot follow-up -->
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:26px;height:26px;background:#1e3a5f;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+            <span style="color:#bae6fd;font-size:10px;font-weight:700">T</span>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:2px 8px 8px 8px;padding:10px 13px;max-width:80%;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+            <p style="margin:0;font-size:13px;color:#1e293b;line-height:1.6"><strong>How long ago did you first notice the change?</strong></p>
+          </div>
+        </div>
+      </div>
+      <!-- Input -->
+      <div style="border-top:1px solid #e2e8f0;padding:10px 14px;background:#fff;display:flex;gap:8px;align-items:center">
+        <input style="flex:1;padding:8px 12px;border:1px solid #cbd5e1;border-radius:4px;font-size:13px;color:#94a3b8;outline:none" placeholder="Type or choose an option above" readonly>
+        <button style="padding:8px 14px;background:#1d4ed8;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.3px">Send</button>
+      </div>
+    </div>
+    <div style="padding:10px 14px;font-size:11.5px;color:#64748b;line-height:1.5">
+      <strong>Conversational:</strong> Familiar, low-anxiety. Works poorly for structured medical data — hard to edit, hard to scan, long for 8 questions.
+    </div>
+  </div>
+
+  <!-- Option B: Serious wizard -->
+  <div class="mockup" data-choice="wizard" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header" style="background:#1e3a5f;color:#e0f2fe">B — Structured Wizard</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:380px">
+      <!-- Top nav -->
+      <div style="background:#1e3a5f;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;font-weight:600;color:#e0f2fe;letter-spacing:1px;text-transform:uppercase">Triaje</span>
+        <span style="font-size:11px;color:#7dd3fc">Step 2 of 8</span>
+      </div>
+      <!-- Progress -->
+      <div style="height:3px;background:#e2e8f0">
+        <div style="width:25%;height:100%;background:#1d4ed8"></div>
+      </div>
+      <!-- Content -->
+      <div style="padding:24px 20px">
+        <div style="font-size:10px;font-weight:600;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">Location</div>
+        <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 6px;line-height:1.3">Where on your body is the symptom?</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px">Select the region that best applies.</p>
+        <!-- Answer options — serious card style -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+          <div style="padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+            <span>Head, face, or neck</span>
+            <span style="color:#cbd5e1;font-size:10px">›</span>
+          </div>
+          <div style="padding:12px 14px;background:#eff6ff;border:1.5px solid #1d4ed8;border-radius:6px;font-size:13px;color:#1d4ed8;cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:space-between">
+            <span>Arm or hand</span>
+            <span style="color:#1d4ed8;font-size:13px">✓</span>
+          </div>
+          <div style="padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+            <span>Chest, back, or abdomen</span>
+            <span style="color:#cbd5e1;font-size:10px">›</span>
+          </div>
+          <div style="padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+            <span>Leg, knee, or foot</span>
+            <span style="color:#cbd5e1;font-size:10px">›</span>
+          </div>
+          <div style="padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#334155;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+            <span>Skin (general)</span>
+            <span style="color:#cbd5e1;font-size:10px">›</span>
+          </div>
+        </div>
+        <!-- Nav buttons -->
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <button style="padding:9px 16px;background:transparent;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;color:#64748b;cursor:pointer">← Back</button>
+          <button style="padding:9px 20px;background:#1d4ed8;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer">Continue →</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 14px;font-size:11.5px;color:#64748b;line-height:1.5">
+      <strong>Structured wizard:</strong> One clear question, list-style answers (no emojis), obvious selection state, easy to navigate. Works for all ages, all devices.
+    </div>
+  </div>
+
+  <!-- Option C: Hybrid serious -->
+  <div class="mockup" data-choice="hybrid" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header" style="background:#1e3a5f;color:#e0f2fe">C — Structured + Free Text</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:380px">
+      <div style="background:#1e3a5f;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;font-weight:600;color:#e0f2fe;letter-spacing:1px;text-transform:uppercase">Triaje</span>
+        <span style="font-size:11px;color:#7dd3fc">2 / 8</span>
+      </div>
+      <div style="height:3px;background:#e2e8f0"><div style="width:25%;height:100%;background:#1d4ed8"></div></div>
+      <div style="padding:22px 20px">
+        <div style="font-size:10px;font-weight:600;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">Symptom Location</div>
+        <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 16px">Where is the symptom located?</h2>
+        <!-- Pill row -->
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px">
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Head</span>
+          <span style="padding:7px 13px;border:1.5px solid #1d4ed8;border-radius:4px;font-size:12px;color:#1d4ed8;background:#eff6ff;cursor:pointer;font-weight:500">Arm ✓</span>
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Chest</span>
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Abdomen</span>
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Back</span>
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Leg</span>
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Skin</span>
+          <span style="padding:7px 13px;border:1.5px solid #cbd5e1;border-radius:4px;font-size:12px;color:#334155;background:#fff;cursor:pointer">Other</span>
+        </div>
+        <!-- Label for text input -->
+        <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px">Describe more specifically</div>
+        <textarea style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1e293b;background:#fff;resize:none;outline:none;line-height:1.5;font-family:inherit" rows="3" placeholder="e.g. left forearm, near the elbow — a mole that changed colour" readonly></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+          <button style="padding:9px 16px;background:transparent;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;color:#64748b;cursor:pointer">← Back</button>
+          <button style="padding:9px 20px;background:#1d4ed8;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer">Continue →</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px 14px;font-size:11.5px;color:#64748b;line-height:1.5">
+      <strong>Structured + free text:</strong> Chips for fast selection, textarea for nuance. Best data quality — Claude gets both a structured tag and the patient's own words.
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:12px">Click a mockup to select — or share thoughts in the terminal</p>

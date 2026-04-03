@@ -1,0 +1,65 @@
+<h2>What design direction fits Triaje?</h2>
+<p class="subtitle">This sets the tone for both the patient intake flow and the provider worklist. Pick the vibe that feels right.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="clinical" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:20px;font-family:sans-serif;border-bottom:1px solid #e2e8f0">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="width:28px;height:28px;background:#0f4c81;border-radius:4px"></div>
+        <span style="font-weight:700;font-size:15px;color:#0f4c81;letter-spacing:0.5px">TRIAJE</span>
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:14px;margin-bottom:10px">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Chief Complaint</div>
+        <div style="font-size:13px;color:#1e293b;font-weight:500">Changing mole on left arm — Tier 2</div>
+      </div>
+      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px;font-size:12px;color:#856404">⚠ Asymmetric border detected — dermatology referral advised</div>
+    </div>
+    <div class="card-body">
+      <h3>Clinical / Professional</h3>
+      <p>Navy + white, tight typography, structured like a medical record. Trustworthy, serious, optimised for dense information.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="warm" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fffbf7;padding:20px;font-family:sans-serif;border-bottom:1px solid #f0e6d3">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="width:28px;height:28px;background:#d97706;border-radius:50%"></div>
+        <span style="font-weight:700;font-size:15px;color:#92400e">Triaje</span>
+      </div>
+      <div style="background:#fff;border:1px solid #f0e6d3;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+        <div style="font-size:13px;color:#78350f;font-weight:600;margin-bottom:4px">How are you feeling today?</div>
+        <div style="font-size:12px;color:#92400e">Describe what's bothering you in your own words.</div>
+      </div>
+      <div style="background:#fef3c7;border-radius:8px;padding:10px;font-size:12px;color:#92400e">💛 We've received your case. A provider will review it shortly.</div>
+    </div>
+    <div class="card-body">
+      <h3>Warm / Approachable</h3>
+      <p>Amber + cream, rounded corners, conversational tone. Feels less intimidating for anxious patients — like a helpful guide, not a hospital.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="modern" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f9ff;padding:20px;font-family:sans-serif;border-bottom:1px solid #bae6fd">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:8px"></div>
+        <span style="font-weight:800;font-size:15px;background:linear-gradient(135deg,#0ea5e9,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent">triaje</span>
+      </div>
+      <div style="background:#fff;border:1px solid #e0f2fe;border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:#0369a1">Step 3 of 8</span>
+          <span style="font-size:11px;color:#94a3b8">Pain severity</span>
+        </div>
+        <div style="height:6px;background:#e0f2fe;border-radius:3px;overflow:hidden">
+          <div style="width:37%;height:100%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:3px"></div>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:8px;padding:10px;font-size:12px;color:#fff;text-align:center">Continue →</div>
+    </div>
+    <div class="card-body">
+      <h3>Modern / Digital Health</h3>
+      <p>Sky blue + indigo gradient, clean sans-serif, progress indicators. Feels like a polished health tech startup (Maple, Teladoc).</p>
+    </div>
+  </div>
+
+</div>

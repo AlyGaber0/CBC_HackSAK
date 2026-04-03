@@ -1,0 +1,129 @@
+<h2>How should patients answer questions?</h2>
+<p class="subtitle">Same color palette (sky blue → indigo), three different interaction models. Which feels right for someone anxious about a symptom at 11pm?</p>
+
+<div class="split" style="gap:16px;align-items:flex-start">
+
+  <!-- Option A: Chat -->
+  <div class="mockup" data-choice="chat" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header">A — Conversational (chat-style)</div>
+    <div class="mockup-body" style="background:#f0f9ff;padding:16px;font-family:sans-serif;min-height:360px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #bae6fd">
+        <div style="width:8px;height:8px;background:#22c55e;border-radius:50%"></div>
+        <span style="font-size:12px;font-weight:700;color:#0369a1;letter-spacing:0.5px">TRIAJE</span>
+      </div>
+      <!-- Bot message -->
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">T</div>
+        <div style="background:#fff;border:1px solid #e0f2fe;border-radius:0 12px 12px 12px;padding:10px 14px;max-width:75%">
+          <p style="margin:0;font-size:13px;color:#1e293b;line-height:1.5">Hi, I'm here to help. <strong>Where on your body is the issue?</strong></p>
+        </div>
+      </div>
+      <!-- User reply -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <div style="background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:12px 0 12px 12px;padding:10px 14px;max-width:65%">
+          <p style="margin:0;font-size:13px;color:#fff">My left arm — there's a mole that changed</p>
+        </div>
+      </div>
+      <!-- Bot follow-up -->
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700">T</div>
+        <div style="background:#fff;border:1px solid #e0f2fe;border-radius:0 12px 12px 12px;padding:10px 14px;max-width:75%">
+          <p style="margin:0;font-size:13px;color:#1e293b;line-height:1.5"><strong>When did you first notice the change?</strong></p>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+            <button style="font-size:11px;padding:4px 10px;border:1px solid #bae6fd;border-radius:20px;background:#f0f9ff;color:#0369a1;cursor:pointer">This week</button>
+            <button style="font-size:11px;padding:4px 10px;border:1px solid #bae6fd;border-radius:20px;background:#f0f9ff;color:#0369a1;cursor:pointer">1–2 weeks</button>
+            <button style="font-size:11px;padding:4px 10px;border:1px solid #bae6fd;border-radius:20px;background:#f0f9ff;color:#0369a1;cursor:pointer">Over a month</button>
+          </div>
+        </div>
+      </div>
+      <!-- Input bar -->
+      <div style="position:relative;margin-top:8px">
+        <input style="width:100%;box-sizing:border-box;padding:10px 44px 10px 14px;border:1px solid #bae6fd;border-radius:24px;font-size:13px;color:#64748b;outline:none;background:#fff" placeholder="Or type your answer…" readonly>
+        <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <span style="color:white;font-size:11px">→</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 14px;font-size:12px;color:#475569">
+      <strong>Chat-style:</strong> Conversational, one question at a time, feels like talking to someone. Familiar from Claude/ChatGPT. Can feel slow; hard to go back and edit.
+    </div>
+  </div>
+
+  <!-- Option B: Big cards wizard -->
+  <div class="mockup" data-choice="wizard" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header">B — Big-button wizard</div>
+    <div class="mockup-body" style="background:#f0f9ff;padding:16px;font-family:sans-serif;min-height:360px">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:700;color:#0369a1;letter-spacing:0.5px">TRIAJE</span>
+        <span style="font-size:11px;color:#94a3b8">Step 2 of 8</span>
+      </div>
+      <!-- Progress -->
+      <div style="height:4px;background:#e0f2fe;border-radius:2px;margin-bottom:20px;overflow:hidden">
+        <div style="width:25%;height:100%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:2px"></div>
+      </div>
+      <!-- Big question -->
+      <h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 6px">Where is the symptom?</h2>
+      <p style="font-size:13px;color:#64748b;margin:0 0 18px">Select the area that best describes it.</p>
+      <!-- Big answer cards -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:#fff;border:2px solid #bae6fd;border-radius:12px;padding:14px;text-align:center;cursor:pointer">
+          <div style="font-size:22px;margin-bottom:4px">🤕</div>
+          <div style="font-size:13px;font-weight:600;color:#0f172a">Head / Face</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#e0f2fe,#ede9fe);border:2px solid #6366f1;border-radius:12px;padding:14px;text-align:center;cursor:pointer">
+          <div style="font-size:22px;margin-bottom:4px">💪</div>
+          <div style="font-size:13px;font-weight:600;color:#4338ca">Arm / Hand ✓</div>
+        </div>
+        <div style="background:#fff;border:2px solid #bae6fd;border-radius:12px;padding:14px;text-align:center;cursor:pointer">
+          <div style="font-size:22px;margin-bottom:4px">🫁</div>
+          <div style="font-size:13px;font-weight:600;color:#0f172a">Chest / Back</div>
+        </div>
+        <div style="background:#fff;border:2px solid #bae6fd;border-radius:12px;padding:14px;text-align:center;cursor:pointer">
+          <div style="font-size:22px;margin-bottom:4px">🦵</div>
+          <div style="font-size:13px;font-weight:600;color:#0f172a">Leg / Foot</div>
+        </div>
+      </div>
+      <button style="width:100%;padding:12px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Continue →</button>
+    </div>
+    <div style="padding:12px 14px;font-size:12px;color:#475569">
+      <strong>Wizard:</strong> One clear question per screen, large tap targets, obvious progress. Works great on mobile. Clinical feel. Easy to go back.
+    </div>
+  </div>
+
+  <!-- Option C: Hybrid -->
+  <div class="mockup" data-choice="hybrid" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header">C — Hybrid: guided cards + free text</div>
+    <div class="mockup-body" style="background:#f0f9ff;padding:16px;font-family:sans-serif;min-height:360px">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:700;color:#0369a1;letter-spacing:0.5px">TRIAJE</span>
+        <span style="font-size:11px;color:#94a3b8">2 / 8</span>
+      </div>
+      <div style="height:4px;background:#e0f2fe;border-radius:2px;margin-bottom:18px;overflow:hidden">
+        <div style="width:25%;height:100%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:2px"></div>
+      </div>
+      <!-- Question with helper text -->
+      <h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 4px">Where is the issue?</h2>
+      <p style="font-size:12px;color:#64748b;margin:0 0 14px">Pick the closest match, then describe it briefly.</p>
+      <!-- Horizontal pill selectors -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <span style="padding:8px 14px;background:#fff;border:1.5px solid #bae6fd;border-radius:20px;font-size:13px;color:#0369a1;cursor:pointer">Head</span>
+        <span style="padding:8px 14px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border:1.5px solid transparent;border-radius:20px;font-size:13px;color:#fff;cursor:pointer">Arm ✓</span>
+        <span style="padding:8px 14px;background:#fff;border:1.5px solid #bae6fd;border-radius:20px;font-size:13px;color:#0369a1;cursor:pointer">Chest</span>
+        <span style="padding:8px 14px;background:#fff;border:1.5px solid #bae6fd;border-radius:20px;font-size:13px;color:#0369a1;cursor:pointer">Abdomen</span>
+        <span style="padding:8px 14px;background:#fff;border:1.5px solid #bae6fd;border-radius:20px;font-size:13px;color:#0369a1;cursor:pointer">Leg</span>
+        <span style="padding:8px 14px;background:#fff;border:1.5px solid #bae6fd;border-radius:20px;font-size:13px;color:#0369a1;cursor:pointer">Skin</span>
+      </div>
+      <!-- Quick text -->
+      <textarea style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #bae6fd;border-radius:10px;font-size:13px;color:#1e293b;background:#fff;resize:none;outline:none;line-height:1.5" rows="3" placeholder="Describe more specifically… (e.g. left forearm, near elbow)" readonly></textarea>
+      <button style="width:100%;margin-top:10px;padding:11px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Next →</button>
+    </div>
+    <div style="padding:12px 14px;font-size:12px;color:#475569">
+      <strong>Hybrid:</strong> Pill/chip selectors for fast picks + a text field for nuance. Balances speed with expressiveness. Best for mixed audiences.
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:12px">Click a mockup to select it — or let me know your thoughts in the terminal</p>

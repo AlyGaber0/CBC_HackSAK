@@ -1,0 +1,149 @@
+<h2>Modern health-app aesthetic</h2>
+<p class="subtitle">Clean, airy, trustworthy. Not a game. Not a government form. Somewhere like Carbon Health or One Medical.</p>
+
+<div class="split" style="gap:20px;align-items:flex-start">
+
+  <!-- Option A: Airy wizard -->
+  <div class="mockup" data-choice="airy-wizard" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header" style="background:#312e81;color:#e0e7ff">A — Airy Wizard</div>
+    <div class="mockup-body" style="background:#ffffff;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;min-height:420px;padding:0;overflow:hidden">
+      <!-- Top strip with progress only -->
+      <div style="padding:18px 22px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:700;background:linear-gradient(135deg,#0ea5e9,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.3px">triaje</span>
+          <span style="font-size:11px;color:#94a3b8;font-weight:500">2 of 8</span>
+        </div>
+        <!-- Segmented progress dots -->
+        <div style="display:flex;gap:4px;margin-bottom:28px">
+          <div style="flex:1;height:3px;border-radius:2px;background:linear-gradient(90deg,#0ea5e9,#6366f1)"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:linear-gradient(90deg,#0ea5e9,#6366f1)"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:#e2e8f0"></div>
+        </div>
+        <p style="font-size:11px;font-weight:600;color:#6366f1;letter-spacing:0.8px;text-transform:uppercase;margin:0 0 8px">Where does it hurt?</p>
+        <h2 style="font-size:22px;font-weight:700;color:#1e1b4b;margin:0 0 24px;line-height:1.3;letter-spacing:-0.4px">Which part of your body<br>is affected?</h2>
+      </div>
+
+      <!-- Answer list — generous spacing, soft hover -->
+      <div style="padding:0 22px">
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="padding:13px 16px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13.5px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.15s">
+            <span>Head, face, or neck</span>
+          </div>
+          <div style="padding:13px 16px;background:#eef2ff;border:1.5px solid #6366f1;border-radius:10px;font-size:13.5px;color:#4338ca;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:500">
+            <span>Arm or hand</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#6366f1" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="padding:13px 16px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13.5px;color:#374151;cursor:pointer">Chest, back, or abdomen</div>
+          <div style="padding:13px 16px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13.5px;color:#374151;cursor:pointer">Leg, knee, or foot</div>
+          <div style="padding:13px 16px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13.5px;color:#374151;cursor:pointer">Skin (general)</div>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div style="padding:18px 22px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <button style="padding:9px 0;background:transparent;border:none;font-size:13px;color:#94a3b8;cursor:pointer;font-weight:500">← Back</button>
+        <button style="padding:11px 24px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.2px;box-shadow:0 2px 8px rgba(99,102,241,0.3)">Continue</button>
+      </div>
+    </div>
+    <div style="padding:10px 14px;font-size:11.5px;color:#64748b;line-height:1.5">
+      <strong>Airy wizard:</strong> One question per screen, generous whitespace, soft selection. Feels calm and trustworthy. Works perfectly on mobile.
+    </div>
+  </div>
+
+  <!-- Option B: Card + context -->
+  <div class="mockup" data-choice="card-context" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header" style="background:#312e81;color:#e0e7ff">B — Select + Describe</div>
+    <div class="mockup-body" style="background:#ffffff;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;min-height:420px;padding:0">
+      <div style="padding:18px 22px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:700;background:linear-gradient(135deg,#0ea5e9,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.3px">triaje</span>
+          <span style="font-size:11px;color:#94a3b8;font-weight:500">2 of 8</span>
+        </div>
+        <div style="height:3px;background:#e2e8f0;border-radius:2px;margin-bottom:26px;overflow:hidden">
+          <div style="width:25%;height:100%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:2px"></div>
+        </div>
+        <p style="font-size:11px;font-weight:600;color:#6366f1;letter-spacing:0.8px;text-transform:uppercase;margin:0 0 8px">Location</p>
+        <h2 style="font-size:22px;font-weight:700;color:#1e1b4b;margin:0 0 6px;letter-spacing:-0.4px">Where is the issue?</h2>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 18px">Select a region, then describe it in your own words.</p>
+      </div>
+
+      <!-- Chips -->
+      <div style="padding:0 22px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+        <span style="padding:8px 14px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#374151;cursor:pointer">Head</span>
+        <span style="padding:8px 14px;background:#eef2ff;border:1.5px solid #6366f1;border-radius:8px;font-size:12.5px;color:#4338ca;font-weight:500;cursor:pointer">Arm ✓</span>
+        <span style="padding:8px 14px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#374151;cursor:pointer">Chest</span>
+        <span style="padding:8px 14px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#374151;cursor:pointer">Back</span>
+        <span style="padding:8px 14px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#374151;cursor:pointer">Abdomen</span>
+        <span style="padding:8px 14px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#374151;cursor:pointer">Leg</span>
+        <span style="padding:8px 14px;background:#fafafa;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#374151;cursor:pointer">Skin</span>
+      </div>
+
+      <!-- Textarea -->
+      <div style="padding:0 22px">
+        <textarea style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;color:#374151;background:#fafafa;resize:none;outline:none;line-height:1.6;font-family:inherit" rows="3" placeholder="Describe the exact location — e.g. left forearm, near the elbow" readonly></textarea>
+      </div>
+
+      <div style="padding:14px 22px 20px;display:flex;justify-content:space-between;align-items:center">
+        <button style="padding:9px 0;background:transparent;border:none;font-size:13px;color:#94a3b8;cursor:pointer;font-weight:500">← Back</button>
+        <button style="padding:11px 24px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(99,102,241,0.3)">Continue</button>
+      </div>
+    </div>
+    <div style="padding:10px 14px;font-size:11.5px;color:#64748b;line-height:1.5">
+      <strong>Select + describe:</strong> Chip selects for fast input, textarea for nuance. Gives Claude both structured and free-form data.
+    </div>
+  </div>
+
+  <!-- Option C: Full-bleed immersive -->
+  <div class="mockup" data-choice="immersive" onclick="toggleSelect(this)" style="cursor:pointer;flex:1">
+    <div class="mockup-header" style="background:#312e81;color:#e0e7ff">C — Full-bleed immersive</div>
+    <div class="mockup-body" style="background:linear-gradient(160deg,#f0f9ff 0%,#eef2ff 100%);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;min-height:420px;padding:0">
+      <!-- Floating header -->
+      <div style="padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:700;background:linear-gradient(135deg,#0ea5e9,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.3px">triaje</span>
+        <div style="display:flex;gap:5px">
+          <div style="width:20px;height:4px;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:#dde3f0;border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:#dde3f0;border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:#dde3f0;border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:#dde3f0;border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:#dde3f0;border-radius:2px"></div>
+          <div style="width:20px;height:4px;background:#dde3f0;border-radius:2px"></div>
+        </div>
+      </div>
+
+      <!-- Question — centered, spacious -->
+      <div style="padding:16px 28px 20px">
+        <p style="font-size:11px;font-weight:600;color:#6366f1;letter-spacing:0.8px;text-transform:uppercase;margin:0 0 10px">Step 2 — Location</p>
+        <h2 style="font-size:24px;font-weight:700;color:#1e1b4b;margin:0 0 22px;line-height:1.3;letter-spacing:-0.5px">Which part of your body<br>is affected?</h2>
+
+        <!-- Answers as floating white cards on tinted bg -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="padding:14px 18px;background:rgba(255,255,255,0.8);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.9);border-radius:12px;font-size:13.5px;color:#374151;cursor:pointer;box-shadow:0 1px 4px rgba(99,102,241,0.06)">Head, face, or neck</div>
+          <div style="padding:14px 18px;background:rgba(238,242,255,0.95);border:1.5px solid #6366f1;border-radius:12px;font-size:13.5px;color:#4338ca;cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(99,102,241,0.15)">
+            Arm or hand
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill="#6366f1"/><path d="M5 8l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="padding:14px 18px;background:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.9);border-radius:12px;font-size:13.5px;color:#374151;cursor:pointer;box-shadow:0 1px 4px rgba(99,102,241,0.06)">Chest, back, or abdomen</div>
+          <div style="padding:14px 18px;background:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.9);border-radius:12px;font-size:13.5px;color:#374151;cursor:pointer;box-shadow:0 1px 4px rgba(99,102,241,0.06)">Leg, knee, or foot</div>
+        </div>
+      </div>
+
+      <div style="padding:4px 22px 18px;display:flex;justify-content:space-between;align-items:center">
+        <button style="padding:9px 0;background:transparent;border:none;font-size:13px;color:#6b7280;cursor:pointer;font-weight:500">← Back</button>
+        <button style="padding:11px 24px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(99,102,241,0.35)">Continue</button>
+      </div>
+    </div>
+    <div style="padding:10px 14px;font-size:11.5px;color:#64748b;line-height:1.5">
+      <strong>Immersive:</strong> Tinted gradient background, frosted-glass cards, generous space. Modern premium feel — like a 2024 health startup.
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:14px">Click to select — or describe what feels right/wrong in the terminal</p>

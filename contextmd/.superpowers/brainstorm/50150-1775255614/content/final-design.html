@@ -1,0 +1,165 @@
+<h2>Final design — both sides</h2>
+<p class="subtitle">Navy + white + muted grays. Urgency colors are the only saturation on screen. Inter typeface. No gradients, no emoji.</p>
+
+<div class="split" style="gap:20px;align-items:flex-start">
+
+  <!-- PATIENT SIDE -->
+  <div style="flex:1">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#64748b;margin-bottom:8px;padding-left:2px">Patient — Intake step</div>
+    <div class="mockup" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+      <div class="mockup-body" style="background:#ffffff;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;min-height:480px;padding:0">
+
+        <!-- Nav strip -->
+        <div style="background:#0f2744;padding:12px 22px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:-0.2px">triaje</span>
+          <span style="font-size:11px;color:#7dd3fc;font-weight:500">Step 3 of 8</span>
+        </div>
+
+        <!-- Segmented progress -->
+        <div style="padding:14px 22px 0;display:flex;gap:3px">
+          <div style="flex:1;height:3px;border-radius:1px;background:#0f2744"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#0f2744"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#0f2744"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#e2e8f0"></div>
+          <div style="flex:1;height:3px;border-radius:1px;background:#e2e8f0"></div>
+        </div>
+
+        <div style="padding:22px 22px 0">
+          <p style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px">Symptom type</p>
+          <h2 style="font-size:21px;font-weight:700;color:#0f172a;margin:0 0 5px;line-height:1.3;letter-spacing:-0.4px">What kind of symptom<br>are you experiencing?</h2>
+          <p style="font-size:13px;color:#64748b;margin:0 0 20px">Select all that apply, then describe it below.</p>
+
+          <!-- Chip selectors — square, no emoji -->
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px">
+            <span style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12.5px;color:#374151;cursor:pointer">Pain</span>
+            <span style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12.5px;color:#374151;cursor:pointer">Swelling</span>
+            <span style="padding:8px 14px;background:#0f2744;border:1.5px solid #0f2744;border-radius:5px;font-size:12.5px;color:#ffffff;cursor:pointer;font-weight:500">Skin change ✓</span>
+            <span style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12.5px;color:#374151;cursor:pointer">Bleeding</span>
+            <span style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12.5px;color:#374151;cursor:pointer">Discharge</span>
+            <span style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12.5px;color:#374151;cursor:pointer">Numbness</span>
+            <span style="padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12.5px;color:#374151;cursor:pointer">Other</span>
+          </div>
+
+          <!-- Describe field -->
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Describe it in your words</div>
+          <div style="padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1e293b;background:#f8fafc;line-height:1.6;min-height:58px">
+            A mole on my left forearm that's gotten darker and the border looks uneven now
+          </div>
+        </div>
+
+        <div style="padding:16px 22px 20px;display:flex;justify-content:space-between;align-items:center">
+          <button style="padding:9px 0;background:transparent;border:none;font-size:13px;color:#94a3b8;cursor:pointer;font-weight:500">← Back</button>
+          <button style="padding:10px 22px;background:#0f2744;color:#fff;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.1px">Continue →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROVIDER SIDE -->
+  <div style="flex:1.4">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#64748b;margin-bottom:8px;padding-left:2px">Provider — Worklist</div>
+    <div class="mockup" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+      <div class="mockup-body" style="background:#f8fafc;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;min-height:480px;padding:0">
+
+        <!-- Provider nav -->
+        <div style="background:#0f2744;padding:11px 20px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:-0.2px">triaje</span>
+          <span style="font-size:11px;color:#475569;margin:0 4px">|</span>
+          <span style="font-size:11px;color:#7dd3fc;font-weight:500">Provider Dashboard</span>
+          <span style="margin-left:auto;font-size:11px;color:#64748b">Demo Mode</span>
+        </div>
+
+        <!-- Table header -->
+        <div style="padding:16px 20px 10px;display:flex;align-items:baseline;justify-content:space-between">
+          <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:-0.3px">Open Cases</span>
+          <span style="font-size:11px;color:#64748b">3 awaiting review</span>
+        </div>
+
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:80px 1fr 90px 80px 70px;gap:0;padding:6px 20px;background:#f1f5f9;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0">
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase">Urgency</span>
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase">Concern</span>
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase">Submitted</span>
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase">Status</span>
+          <span></span>
+        </div>
+
+        <!-- Row 1 — High urgency (orange) -->
+        <div style="display:grid;grid-template-columns:80px 1fr 90px 80px 70px;gap:0;padding:11px 20px;background:#fff;border-bottom:1px solid #f1f5f9;align-items:center">
+          <span style="display:inline-block;padding:3px 8px;background:#fff7ed;border:1px solid #fdba74;border-radius:3px;font-size:10.5px;font-weight:700;color:#c2410c;letter-spacing:0.3px">TIER 3</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0f172a">Chest pain — left side</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:1px">Chest / Back</div>
+          </div>
+          <span style="font-size:12px;color:#64748b">14 min ago</span>
+          <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 7px;border-radius:3px;font-weight:500">Awaiting</span>
+          <button style="padding:6px 12px;background:#0f2744;color:#fff;border:none;border-radius:4px;font-size:11.5px;font-weight:600;cursor:pointer">Claim</button>
+        </div>
+
+        <!-- Row 2 — Moderate (yellow) -->
+        <div style="display:grid;grid-template-columns:80px 1fr 90px 80px 70px;gap:0;padding:11px 20px;background:#fff;border-bottom:1px solid #f1f5f9;align-items:center">
+          <span style="display:inline-block;padding:3px 8px;background:#fefce8;border:1px solid #fde047;border-radius:3px;font-size:10.5px;font-weight:700;color:#a16207;letter-spacing:0.3px">TIER 2</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0f172a">Changing mole — left arm</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:1px">Skin (general)</div>
+          </div>
+          <span style="font-size:12px;color:#64748b">1 hr ago</span>
+          <span style="font-size:11px;color:#1d4ed8;background:#eff6ff;padding:3px 7px;border-radius:3px;font-weight:500">In Review</span>
+          <button style="padding:6px 12px;background:transparent;color:#0f2744;border:1px solid #cbd5e1;border-radius:4px;font-size:11.5px;font-weight:600;cursor:pointer">Open</button>
+        </div>
+
+        <!-- Row 3 — Low (green) -->
+        <div style="display:grid;grid-template-columns:80px 1fr 90px 80px 70px;gap:0;padding:11px 20px;background:#fff;border-bottom:1px solid #f1f5f9;align-items:center">
+          <span style="display:inline-block;padding:3px 8px;background:#f0fdf4;border:1px solid #86efac;border-radius:3px;font-size:10.5px;font-weight:700;color:#15803d;letter-spacing:0.3px">TIER 1</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0f172a">Persistent sore throat</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:1px">Head / Neck</div>
+          </div>
+          <span style="font-size:12px;color:#64748b">3 hr ago</span>
+          <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 7px;border-radius:3px;font-weight:500">Awaiting</span>
+          <button style="padding:6px 12px;background:#0f2744;color:#fff;border:none;border-radius:4px;font-size:11.5px;font-weight:600;cursor:pointer">Claim</button>
+        </div>
+
+        <!-- Color legend -->
+        <div style="padding:14px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;gap:16px;align-items:center">
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase">Urgency:</span>
+          <span style="font-size:11px;color:#15803d;font-weight:600">● Tier 1 — Monitor</span>
+          <span style="font-size:11px;color:#a16207;font-weight:600">● Tier 2 — Appointment</span>
+          <span style="font-size:11px;color:#c2410c;font-weight:600">● Tier 3 — Urgent</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Urgency color swatch -->
+    <div style="margin-top:14px;padding:12px 16px;background:#fff;border:1px solid #e2e8f0;border-radius:6px">
+      <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Urgency color system — only saturated colors in the UI</div>
+      <div style="display:flex;gap:10px">
+        <div style="text-align:center">
+          <div style="width:36px;height:20px;background:#15803d;border-radius:3px;margin:0 auto 4px"></div>
+          <div style="font-size:10px;color:#374151;font-weight:600">Tier 1</div>
+          <div style="font-size:10px;color:#94a3b8">Low</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:36px;height:20px;background:#a16207;border-radius:3px;margin:0 auto 4px"></div>
+          <div style="font-size:10px;color:#374151;font-weight:600">Tier 2</div>
+          <div style="font-size:10px;color:#94a3b8">Moderate</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:36px;height:20px;background:#c2410c;border-radius:3px;margin:0 auto 4px"></div>
+          <div style="font-size:10px;color:#374151;font-weight:600">Tier 3</div>
+          <div style="font-size:10px;color:#94a3b8">Urgent</div>
+        </div>
+        <div style="flex:1;border-left:1px solid #e2e8f0;padding-left:10px">
+          <div style="font-size:11px;color:#374151;margin-bottom:4px"><strong>Everything else</strong> — navy, white, #f8fafc bg, #e2e8f0 borders, #64748b muted text.</div>
+          <div style="font-size:11px;color:#374151">CTA buttons: navy <span style="display:inline-block;width:18px;height:10px;background:#0f2744;border-radius:2px;vertical-align:middle;margin:0 2px"></span> only. No gradients anywhere.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:16px">Does this feel right? Any adjustments before I write the spec?</p>
