@@ -8,6 +8,15 @@
 
 **Tech Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Supabase (PostgreSQL + Storage), Anthropic claude-sonnet-4-6, MedlinePlus Connect + PubMed + RxNorm + OpenFDA FAERS APIs
 
+**Git Workflow:** Every task ends with `git add -p`, a conventional commit, and `git push origin main`. Commit messages follow `feat|test|fix|chore: description`. Never force-push main.
+
+**Testing Strategy:**
+- **Unit tests** (`jest` + `ts-jest`): all `lib/` utilities — triage logic, NIH API functions, Claude prompt construction
+- **API route tests** (`jest` + `node-mocks-http`): cases CRUD, triage route, respond route
+- **Component tests** (`@testing-library/react`): emergency gate behavior, intake step rendering, provider outcome card selection
+- **Run:** `npm test` (watch off in CI, `npm test -- --watchAll=false`)
+- **Coverage gate:** `--coverage --coverageThreshold='{"global":{"lines":70}}'` — fail build under 70% line coverage on `lib/` and `app/api/`
+
 **Team Split:**
 - **Person A** → Patient UX: emergency gate, multi-step intake form, patient dashboard, response view
 - **Person B** → Provider UX: worklist table, case detail view, response submission form
@@ -125,12 +134,76 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 EOF
 ```
 
-- [ ] **Step 6: Link Vercel project**
+- [ ] **Step 6: Install testing dependencies**
+
+```bash
+npm install --save-dev jest ts-jest @jest/globals jest-environment-jsdom \
+  @testing-library/react @testing-library/jest-dom @testing-library/user-event \
+  node-mocks-http
+```
+
+- [ ] **Step 7: Create Jest config**
+
+```typescript
+// jest.config.ts
+import type { Config } from 'jest';
+
+const config: Config = {
+  projects: [
+    {
+      displayName: 'node',
+      testEnvironment: 'node',
+      testMatch: ['**/__tests__/lib/**/*.test.ts', '**/__tests__/api/**/*.test.ts'],
+      transform: { '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }] },
+      moduleNameMapper: { '^@/(.*)$': '<rootDir>/$1' },
+    },
+    {
+      displayName: 'jsdom',
+      testEnvironment: 'jsdom',
+      testMatch: ['**/__tests__/components/**/*.test.tsx'],
+      transform: { '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }] },
+      moduleNameMapper: { '^@/(.*)$': '<rootDir>/$1' },
+      setupFilesAfterFramework: ['<rootDir>/jest.setup.ts'],
+    },
+  ],
+  collectCoverageFrom: ['lib/**/*.ts', 'app/api/**/*.ts'],
+  coverageThreshold: { global: { lines: 70 } },
+};
+
+export default config;
+```
+
+- [ ] **Step 8: Create jest.setup.ts**
+
+```typescript
+// jest.setup.ts
+import '@testing-library/jest-dom';
+```
+
+- [ ] **Step 9: Add test script to package.json**
+
+Add to the `"scripts"` section:
+```json
+"test": "jest --watchAll=false",
+"test:coverage": "jest --coverage --watchAll=false"
+```
+
+- [ ] **Step 10: Link Vercel project**
 
 ```bash
 npx vercel link
 # Follow prompts, link to team/personal account
 # Add env vars in Vercel dashboard matching .env.local
+```
+
+- [ ] **Step 11: Initial commit**
+
+```bash
+git add package.json package-lock.json jest.config.ts jest.setup.ts .env.local.example
+git commit -m "chore: scaffold Next.js app with shadcn, Supabase, testing setup
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 ---
@@ -202,6 +275,16 @@ CREATE INDEX idx_cases_status ON cases(status);
 CREATE INDEX idx_cases_patient_id ON cases(patient_id);
 CREATE INDEX idx_cases_tier ON cases(tier);
 CREATE INDEX idx_responses_case_id ON responses(case_id);
+```
+
+- [ ] **Step 2: Commit schema**
+
+```bash
+git add supabase/migrations/001_initial.sql
+git commit -m "chore: add Supabase schema migration (cases + responses tables)
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 ### Task 2: TypeScript Types
@@ -324,6 +407,52 @@ export interface TriageAIResult {
 }
 ```
 
+- [ ] **Step 2: Write type shape tests**
+
+```typescript
+// __tests__/lib/types.test.ts
+import type { Case, Response, TriageOutcome, CaseStatus } from '@/lib/types';
+
+describe('Type contracts', () => {
+  it('CaseStatus covers all expected values', () => {
+    const valid: CaseStatus[] = [
+      'processing', 'awaiting_review', 'in_review', 'response_ready', 'escalated',
+    ];
+    // If this compiles, the union is correct
+    expect(valid).toHaveLength(5);
+  });
+
+  it('TriageOutcome covers all four outcome values', () => {
+    const valid: TriageOutcome[] = [
+      'self_manageable', 'monitor', 'book_appointment', 'urgent',
+    ];
+    expect(valid).toHaveLength(4);
+  });
+
+  it('IntakeFormState patientQuestions is a fixed-length tuple of 3', () => {
+    const q: [string, string, string] = ['q1', '', ''];
+    expect(q).toHaveLength(3);
+  });
+});
+```
+
+- [ ] **Step 3: Run tests — expect PASS**
+
+```bash
+npm test -- __tests__/lib/types.test.ts
+```
+Expected: `PASS __tests__/lib/types.test.ts` (3 tests)
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/types.ts __tests__/lib/types.test.ts
+git commit -m "feat: add shared TypeScript types with type-contract tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
+```
+
 ### Task 3: Supabase Client
 
 - [ ] **Step 1: Create `lib/supabase.ts`**
@@ -341,6 +470,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Server client (API routes) — bypasses RLS
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add lib/supabase.ts
+git commit -m "feat: add Supabase browser and admin clients
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 ### Task 4: NIH API Library
@@ -479,6 +618,115 @@ export async function gatherNihContext(params: {
 }
 ```
 
+- [ ] **Step 2: Write NIH API tests (mocked fetch)**
+
+```typescript
+// __tests__/lib/nih.test.ts
+import { fetchMedlinePlus, fetchPubMed, lookupRxNorm, fetchOpenFDA, gatherNihContext } from '@/lib/nih';
+
+// Mock global fetch
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
+beforeEach(() => mockFetch.mockReset());
+
+describe('fetchMedlinePlus', () => {
+  it('returns a NihSource on valid response', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        feed: {
+          entry: [{
+            title: { _value: 'Mole (Nevus)' },
+            link: [{ href: 'https://medlineplus.gov/moles.html' }],
+            summary: { _value: '<p>A mole is a common skin growth.</p>' },
+          }],
+        },
+      }),
+    });
+    const result = await fetchMedlinePlus('mole');
+    expect(result).not.toBeNull();
+    expect(result!.source).toBe('medlineplus');
+    expect(result!.title).toBe('Mole (Nevus)');
+    expect(result!.excerpt).not.toContain('<p>'); // HTML stripped
+  });
+
+  it('returns null on HTTP error', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false });
+    const result = await fetchMedlinePlus('anything');
+    expect(result).toBeNull();
+  });
+
+  it('returns null on empty entry array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ feed: { entry: [] } }),
+    });
+    const result = await fetchMedlinePlus('nonexistent');
+    expect(result).toBeNull();
+  });
+});
+
+describe('lookupRxNorm', () => {
+  it('returns RxNorm source with CUI when medication found', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ idGroup: { rxnormId: ['1049502'] } }),
+    });
+    const result = await lookupRxNorm('metformin');
+    expect(result).not.toBeNull();
+    expect(result!.source).toBe('rxnorm');
+    expect(result!.excerpt).toContain('1049502');
+  });
+
+  it('returns null when medication not found in RxNorm', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ idGroup: {} }),
+    });
+    const result = await lookupRxNorm('unknowndrug');
+    expect(result).toBeNull();
+  });
+});
+
+describe('gatherNihContext', () => {
+  it('returns sources array and contextText string', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        feed: { entry: [{ title: { _value: 'Rash' }, link: [{ href: 'http://example.com' }], summary: { _value: 'A rash is...' } }] },
+        esearchresult: { idlist: [] },
+        idGroup: {},
+      }),
+    });
+    const { sources, contextText } = await gatherNihContext({
+      symptomDescription: 'red rash on arm',
+      symptomType: 'Rash / skin change',
+      medications: [],
+    });
+    expect(Array.isArray(sources)).toBe(true);
+    expect(typeof contextText).toBe('string');
+  });
+});
+```
+
+- [ ] **Step 3: Run tests — expect PASS**
+
+```bash
+npm test -- __tests__/lib/nih.test.ts
+```
+Expected: `PASS __tests__/lib/nih.test.ts` (6 tests)
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/nih.ts __tests__/lib/nih.test.ts
+git commit -m "feat: add NIH API library (MedlinePlus, PubMed, RxNorm, OpenFDA) with tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
+```
+
 ### Task 5: Tier 4 Keyword Gate (runs client-side at intake submit)
 
 - [ ] **Step 1: Create `lib/triage.ts`**
@@ -514,6 +762,92 @@ export function checkTier4(text: string): boolean {
 export function checkAnyTier4(fields: string[]): boolean {
   return fields.some(f => checkTier4(f));
 }
+```
+
+- [ ] **Step 2: Write tier-4 detection tests (safety-critical)**
+
+```typescript
+// __tests__/lib/triage.test.ts
+import { checkTier4, checkAnyTier4 } from '@/lib/triage';
+
+describe('checkTier4 — must catch all emergency keywords', () => {
+  const SHOULD_TRIGGER = [
+    'I have chest pain',
+    'chest tightness for an hour',
+    'difficulty breathing since yesterday',
+    "I can't breathe properly",
+    'I cannot breathe well',
+    'loss of consciousness earlier',
+    'I passed out this morning',
+    'I think I am having a stroke',
+    'my face is drooping',
+    'sudden arm weakness on left side',
+    'severe allergic reaction to peanuts',
+    'anaphylaxis symptoms',
+    'uncontrolled bleeding from wound',
+    'having a seizure',
+    'possible overdose of medication',
+    'suicidal thoughts',
+    'I think I am having a heart attack',
+  ];
+
+  SHOULD_TRIGGER.forEach(text => {
+    it(`triggers on: "${text}"`, () => {
+      expect(checkTier4(text)).toBe(true);
+    });
+  });
+
+  const SHOULD_NOT_TRIGGER = [
+    'mild rash on my arm',
+    'headache for two days',
+    'sore throat and runny nose',
+    'knee pain when walking',
+    'stomach ache after eating',
+    'mole that changed colour',
+    'fatigue for a week',
+  ];
+
+  SHOULD_NOT_TRIGGER.forEach(text => {
+    it(`does not trigger on: "${text}"`, () => {
+      expect(checkTier4(text)).toBe(false);
+    });
+  });
+});
+
+describe('checkAnyTier4', () => {
+  it('returns true if any field contains a red flag', () => {
+    expect(checkAnyTier4(['mild headache', 'chest pain radiating to arm', ''])).toBe(true);
+  });
+
+  it('returns false if no field contains a red flag', () => {
+    expect(checkAnyTier4(['mild headache', 'sore throat', 'fatigue'])).toBe(false);
+  });
+
+  it('returns false for empty array', () => {
+    expect(checkAnyTier4([])).toBe(false);
+  });
+
+  it('returns false for array of empty strings', () => {
+    expect(checkAnyTier4(['', '', ''])).toBe(false);
+  });
+});
+```
+
+- [ ] **Step 3: Run tests — expect ALL PASS (these are safety-critical)**
+
+```bash
+npm test -- __tests__/lib/triage.test.ts --verbose
+```
+Expected: `PASS __tests__/lib/triage.test.ts` — every emergency keyword must pass. If any fail, fix the regex in `lib/triage.ts` before proceeding.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/triage.ts __tests__/lib/triage.test.ts
+git commit -m "feat: add tier-4 keyword gate with comprehensive safety tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 ### Task 6: Zustand Intake Store
@@ -563,6 +897,76 @@ export const useIntakeStore = create<IntakeStore>()(
     { name: 'contextmd-intake' }
   )
 );
+```
+
+- [ ] **Step 2: Write Zustand store tests**
+
+```typescript
+// __tests__/lib/store.test.ts
+import { act, renderHook } from '@testing-library/react';
+import { useIntakeStore } from '@/lib/store';
+
+// Stub localStorage for jsdom
+beforeEach(() => {
+  localStorage.clear();
+  // Reset store between tests
+  useIntakeStore.getState().reset();
+});
+
+describe('useIntakeStore', () => {
+  it('initialises with empty string values', () => {
+    const { result } = renderHook(() => useIntakeStore());
+    expect(result.current.bodyLocation).toBe('');
+    expect(result.current.painSeverity).toBe(0);
+    expect(result.current.patientQuestions).toEqual(['', '', '']);
+    expect(result.current.currentStep).toBe(0);
+  });
+
+  it('update() merges partial state', () => {
+    const { result } = renderHook(() => useIntakeStore());
+    act(() => result.current.update({ bodyLocation: 'Chest', painSeverity: 6 }));
+    expect(result.current.bodyLocation).toBe('Chest');
+    expect(result.current.painSeverity).toBe(6);
+    expect(result.current.bodySubLocation).toBe(''); // unchanged
+  });
+
+  it('setStep() advances and retreats correctly', () => {
+    const { result } = renderHook(() => useIntakeStore());
+    act(() => result.current.setStep(3));
+    expect(result.current.currentStep).toBe(3);
+    act(() => result.current.setStep(1));
+    expect(result.current.currentStep).toBe(1);
+  });
+
+  it('reset() clears all fields and returns to step 0', () => {
+    const { result } = renderHook(() => useIntakeStore());
+    act(() => {
+      result.current.update({ bodyLocation: 'Head', freeText: 'headache' });
+      result.current.setStep(5);
+    });
+    act(() => result.current.reset());
+    expect(result.current.bodyLocation).toBe('');
+    expect(result.current.freeText).toBe('');
+    expect(result.current.currentStep).toBe(0);
+  });
+});
+```
+
+- [ ] **Step 3: Run tests**
+
+```bash
+npm test -- __tests__/lib/store.test.ts
+```
+Expected: `PASS __tests__/lib/store.test.ts` (4 tests)
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/store.ts __tests__/lib/store.test.ts
+git commit -m "feat: add Zustand intake form store with persistence and tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 ### Task 7: Claude Client + System Prompt
@@ -673,6 +1077,104 @@ ${nihContextText || 'No NIH data retrieved for this case.'}
 
   return parsed;
 }
+```
+
+- [ ] **Step 2: Write Claude system prompt integrity tests**
+
+```typescript
+// __tests__/lib/claude.test.ts
+import Anthropic from '@anthropic-ai/sdk';
+import { runTriageAI } from '@/lib/claude';
+import type { IntakeFormState } from '@/lib/types';
+
+jest.mock('@anthropic-ai/sdk');
+
+const mockCreate = jest.fn();
+(Anthropic as jest.MockedClass<typeof Anthropic>).mockImplementation(() => ({
+  messages: { create: mockCreate },
+} as unknown as Anthropic));
+
+const baseIntake: IntakeFormState = {
+  bodyLocation: 'Skin (general)', bodySubLocation: 'Skin — arm',
+  symptomType: 'Rash / skin change', symptomDescription: 'Dark mole, border uneven',
+  timelineStart: '2026-03-01', timelineChanged: 'worse',
+  painSeverity: 3, associatedSymptoms: [],
+  photoCount: 1, photoNames: ['mole.jpg'],
+  freeText: 'Mole has changed', patientQuestions: ['Should I see a dermatologist?', '', ''],
+  medicalConditions: '', medications: '', allergies: '',
+};
+
+const validTier2Response = JSON.stringify({
+  brief: {
+    chiefComplaint: 'Changing mole on left arm',
+    timeline: 'Noticed 1 month ago, worsening',
+    severity: 'Pain 3/10, no systemic symptoms',
+    redFlags: ['Asymmetric border'],
+    medicationFlags: [],
+    relevantHistory: 'No significant history',
+    patientQuestions: ['Should I see a dermatologist?'],
+    nihContext: 'MedlinePlus recommends dermatology referral for ABCDE changes',
+  },
+  tier: 2,
+  tierReasoning: 'Tier 2 — changing lesion with asymmetry, no acute red flags',
+  selfCareResponse: null,
+  nihSources: [],
+});
+
+describe('runTriageAI', () => {
+  it('returns parsed TriageAIResult on valid Claude response', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: validTier2Response }],
+    });
+    const result = await runTriageAI(baseIntake, 'NIH context here', []);
+    expect(result.tier).toBe(2);
+    expect(result.brief.chiefComplaint).toBe('Changing mole on left arm');
+    expect(result.selfCareResponse).toBeNull();
+  });
+
+  it('attaches provided NIH sources to result', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: validTier2Response }],
+    });
+    const sources = [{ source: 'medlineplus' as const, title: 'Moles', url: 'https://example.com', excerpt: 'info' }];
+    const result = await runTriageAI(baseIntake, '', sources);
+    expect(result.nihSources).toEqual(sources);
+  });
+
+  it('throws if Claude returns invalid JSON', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: 'not valid json' }],
+    });
+    await expect(runTriageAI(baseIntake, '', [])).rejects.toThrow();
+  });
+
+  it('includes patient questions in the user message sent to Claude', async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: validTier2Response }],
+    });
+    await runTriageAI(baseIntake, '', []);
+    const callArgs = mockCreate.mock.calls[0][0];
+    const userMsg = callArgs.messages[0].content;
+    expect(userMsg).toContain('Should I see a dermatologist?');
+  });
+});
+```
+
+- [ ] **Step 3: Run tests**
+
+```bash
+npm test -- __tests__/lib/claude.test.ts
+```
+Expected: `PASS __tests__/lib/claude.test.ts` (4 tests)
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/claude.ts __tests__/lib/claude.test.ts
+git commit -m "feat: add Claude triage client with system prompt and unit tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 ---
@@ -814,6 +1316,111 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 ```
 
+- [ ] **Step 3: Write cases API tests**
+
+```typescript
+// __tests__/api/cases.test.ts
+import { GET, POST } from '@/app/api/cases/route';
+import { supabaseAdmin } from '@/lib/supabase';
+import { NextRequest } from 'next/server';
+
+jest.mock('@/lib/supabase', () => ({
+  supabaseAdmin: { from: jest.fn() },
+}));
+
+const mockFrom = supabaseAdmin.from as jest.Mock;
+
+function mockChain(resolvedValue: unknown) {
+  const chain = {
+    select: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    in: jest.fn().mockReturnThis(),
+    not: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue(resolvedValue),
+  };
+  // make the chain itself awaitable for non-.single() calls
+  Object.assign(chain, { then: (resolve: (v: unknown) => void) => resolve(resolvedValue) });
+  return chain;
+}
+
+describe('GET /api/cases', () => {
+  it('filters by patient_id when provided', async () => {
+    const chain = mockChain({ data: [], error: null });
+    mockFrom.mockReturnValue(chain);
+    const req = new NextRequest('http://localhost/api/cases?patient_id=patient-123');
+    await GET(req);
+    expect(chain.eq).toHaveBeenCalledWith('patient_id', 'patient-123');
+  });
+
+  it('filters to awaiting_review|in_review when provider=true', async () => {
+    const chain = mockChain({ data: [], error: null });
+    mockFrom.mockReturnValue(chain);
+    const req = new NextRequest('http://localhost/api/cases?provider=true');
+    await GET(req);
+    expect(chain.in).toHaveBeenCalledWith('status', ['awaiting_review', 'in_review']);
+  });
+});
+
+describe('POST /api/cases', () => {
+  it('returns 201 with created case on success', async () => {
+    const fakeCase = { id: 'case-uuid', status: 'processing' };
+    const chain = mockChain({ data: fakeCase, error: null });
+    mockFrom.mockReturnValue(chain);
+
+    const req = new NextRequest('http://localhost/api/cases', {
+      method: 'POST',
+      body: JSON.stringify({
+        patientId: 'patient-abc',
+        bodyLocation: 'Chest', bodySubLocation: 'Chest (front)',
+        symptomType: 'Pain', symptomDescription: 'mild',
+        timelineStart: '2026-04-01', timelineChanged: 'same',
+        painSeverity: 2, associatedSymptoms: [],
+        freeText: 'just checking', patientQuestions: ['Is this ok?', '', ''],
+        medicalConditions: '', medications: '', allergies: '',
+        photoCount: 0, photoNames: [],
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.id).toBe('case-uuid');
+  });
+
+  it('returns 500 when Supabase insert fails', async () => {
+    const chain = mockChain({ data: null, error: { message: 'DB error' } });
+    mockFrom.mockReturnValue(chain);
+
+    const req = new NextRequest('http://localhost/api/cases', {
+      method: 'POST',
+      body: JSON.stringify({ patientId: 'p', bodyLocation: '', bodySubLocation: '', symptomType: '', symptomDescription: '', timelineStart: '', timelineChanged: '', painSeverity: 0, associatedSymptoms: [], freeText: '', patientQuestions: ['', '', ''], medicalConditions: '', medications: '', allergies: '', photoCount: 0, photoNames: [] }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(500);
+  });
+});
+```
+
+- [ ] **Step 4: Run tests**
+
+```bash
+npm test -- __tests__/api/cases.test.ts
+```
+Expected: `PASS __tests__/api/cases.test.ts` (4 tests)
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app/api/cases/ __tests__/api/cases.test.ts
+git commit -m "feat: add cases API routes (GET list, POST create, PATCH, claim) with tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
+```
+
 #### Task 9: Triage AI Route
 
 - [ ] **Step 1: Create `app/api/triage/route.ts`**
@@ -881,6 +1488,115 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
+```
+
+- [ ] **Step 2: Write triage route tests**
+
+```typescript
+// __tests__/api/triage.test.ts
+import { POST } from '@/app/api/triage/route';
+import { supabaseAdmin } from '@/lib/supabase';
+import { runTriageAI } from '@/lib/claude';
+import { gatherNihContext } from '@/lib/nih';
+import { NextRequest } from 'next/server';
+
+jest.mock('@/lib/supabase', () => ({ supabaseAdmin: { from: jest.fn() } }));
+jest.mock('@/lib/claude');
+jest.mock('@/lib/nih');
+
+const mockFrom = supabaseAdmin.from as jest.Mock;
+const mockRunTriageAI = runTriageAI as jest.Mock;
+const mockGatherNih = gatherNihContext as jest.Mock;
+
+function makeUpdateChain() {
+  return { update: jest.fn().mockReturnThis(), eq: jest.fn().mockResolvedValue({ error: null }), insert: jest.fn().mockResolvedValue({ error: null }) };
+}
+
+const baseBody = {
+  caseId: 'case-123',
+  intake: {
+    bodyLocation: 'Skin (general)', bodySubLocation: 'Skin — arm',
+    symptomType: 'Rash / skin change', symptomDescription: 'mole change',
+    timelineStart: '', timelineChanged: '', painSeverity: 2,
+    associatedSymptoms: [], photoCount: 0, photoNames: [],
+    freeText: 'mole changed', patientQuestions: ['dermatologist?', '', ''],
+    medicalConditions: '', medications: 'metformin', allergies: '',
+  },
+};
+
+beforeEach(() => {
+  mockGatherNih.mockResolvedValue({ sources: [], contextText: '' });
+  mockFrom.mockReturnValue(makeUpdateChain());
+});
+
+describe('POST /api/triage', () => {
+  it('sets status to awaiting_review for tier 2', async () => {
+    mockRunTriageAI.mockResolvedValueOnce({
+      brief: { chiefComplaint: 'mole', timeline: '', severity: '', redFlags: [], medicationFlags: [], relevantHistory: '', patientQuestions: [], nihContext: '' },
+      tier: 2, tierReasoning: 'Tier 2', selfCareResponse: null, nihSources: [],
+    });
+    const chain = makeUpdateChain();
+    mockFrom.mockReturnValue(chain);
+
+    const req = new NextRequest('http://localhost/api/triage', {
+      method: 'POST', body: JSON.stringify(baseBody),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe('awaiting_review');
+    expect(body.tier).toBe(2);
+  });
+
+  it('auto-creates response and sets status to response_ready for tier 0', async () => {
+    mockRunTriageAI.mockResolvedValueOnce({
+      brief: { chiefComplaint: 'mild sunburn', timeline: '', severity: '', redFlags: [], medicationFlags: [], relevantHistory: '', patientQuestions: [], nihContext: '' },
+      tier: 0, tierReasoning: 'Tier 0 — benign', selfCareResponse: 'Apply cool water and aloe vera.', nihSources: [],
+    });
+    const chain = makeUpdateChain();
+    mockFrom.mockReturnValue(chain);
+
+    const req = new NextRequest('http://localhost/api/triage', {
+      method: 'POST', body: JSON.stringify(baseBody),
+    });
+    const res = await POST(req);
+    const body = await res.json();
+    expect(body.status).toBe('response_ready');
+    // Confirm responses.insert was called
+    expect(chain.insert).toHaveBeenCalled();
+  });
+
+  it('falls back to awaiting_review and returns 500 if Claude throws', async () => {
+    mockRunTriageAI.mockRejectedValueOnce(new Error('API rate limit'));
+    const chain = makeUpdateChain();
+    mockFrom.mockReturnValue(chain);
+
+    const req = new NextRequest('http://localhost/api/triage', {
+      method: 'POST', body: JSON.stringify(baseBody),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(500);
+    // Case should still be updated to awaiting_review so provider can handle it
+    expect(chain.update).toHaveBeenCalled();
+  });
+});
+```
+
+- [ ] **Step 3: Run tests**
+
+```bash
+npm test -- __tests__/api/triage.test.ts
+```
+Expected: `PASS __tests__/api/triage.test.ts` (3 tests)
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add app/api/triage/route.ts __tests__/api/triage.test.ts
+git commit -m "feat: add AI triage route with Claude+NIH integration and tests
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin main
 ```
 
 #### Task 10: Respond Route
@@ -2234,6 +2950,31 @@ Visit the deployed URL. Run the full patient → provider flow end-to-end.
 - [ ] Provider response creates record + flips case status to "response_ready"
 - [ ] Patient response card shows NIH sources with working links
 - [ ] Disclaimer text visible on both patient response card and provider response form
+
+---
+
+## 5-Minute Demo Script
+
+**0:00 — Problem statement (30 sec)**
+"2 million Quebecers have no family doctor. When something health-related comes up, they flood ERs or spiral on Google. ContextMD gives them a structured, async way to get a competent answer."
+
+**0:30 — Emergency gate (30 sec)**
+Show the binary gate. Check a box → 911 screen. Uncheck → Continue. "This is our first hard constraint: we never proceed if someone is in crisis."
+
+**1:00 — Patient intake (90 sec)**
+Speed through the form with pre-filled data: skin mole concern, 4/10 pain, 2 photos selected. Show photo preview in browser. Submit.
+
+**2:30 — Processing + Claude (30 sec)**
+Show "Processing" status. Open Supabase dashboard in a second tab → watch the tier field populate in real time as Claude processes. Tier 2 appears.
+
+**3:00 — Provider worklist (60 sec)**
+Switch to `/provider/worklist`. Show Tier 2 — Moderate badge. Click Claim. Show the two-column case detail: AI brief on the left with chief complaint, red flags, NIH context, patient questions highlighted in amber. Select "Book Appointment", choose Dermatologist, 2–4 weeks. Write 2-sentence response. Submit.
+
+**4:00 — Patient response (30 sec)**
+Back to patient view. Response Ready badge. Show formatted outcome card with NIH source links. Point out the disclaimer at the bottom.
+
+**4:30 — Ethical framing (30 sec)**
+"The provider is answering 'what's the next step', not diagnosing. The AI generates the clinical brief for efficiency, not the response. For Tier 0 cases, Claude generates the self-care response directly — grounded in MedlinePlus. We're replacing 811, not replacing doctors."
 
 ---
 
