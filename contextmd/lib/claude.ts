@@ -104,8 +104,8 @@ ${nihContextText || 'No NIH data retrieved for this case.'}
 `;
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
+    model: 'claude-haiku-3-5',
+    max_tokens: 1200,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userMessage }],
   });
