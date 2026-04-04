@@ -3,20 +3,31 @@ import React, { use, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { Case, Response, NihSource, TriageOutcome, NavigationAction } from '@/lib/types';
 
-const OUTCOME_CONFIG: Record<TriageOutcome, { label: string; color: string; bg: string; border: string }> = {
-  self_manageable: { label: 'Self-Manageable', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
-  monitor:         { label: 'Monitor',          color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-  book_appointment:{ label: 'Book Appointment', color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
-  urgent:          { label: 'Urgent',           color: '#991b1b', bg: '#fff1f2', border: '#fecaca' },
+const OUTCOME_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  self_manageable:  { label: 'Self-Manageable',   color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  monitor:          { label: 'Monitor',            color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+  book_appointment: { label: 'Book Appointment',   color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  urgent:           { label: 'Urgent',             color: '#991b1b', bg: '#fff1f2', border: '#fecaca' },
+  pharmacy_guidance:{ label: 'Pharmacy / Medication Guidance', color: '#5b21b6', bg: '#f5f3ff', border: '#ddd6fe' },
 };
 
-const NAV_CONFIG: Record<NavigationAction, { icon: React.JSX.Element; label: string; detail: string; color: string; bg: string; border: string }> = {
+const PHARMACY_ACTION_LABELS: Record<string, { label: string; icon: string; detail: string }> = {
+  call_pharmacy:        { icon: '📞', label: 'Call your local pharmacy',                detail: 'Contact your pharmacist before taking or stopping any medications.' },
+  take_medications:     { icon: '💊', label: 'Take these specific medications',        detail: 'Follow the medication instructions provided by your provider below.' },
+  avoid_medications:    { icon: '🚫', label: 'Avoid these medications',                detail: 'Do not take the medications listed below until you speak with a provider.' },
+  see_pharmacist:       { icon: '🏪', label: 'Visit a pharmacist (no appointment)',    detail: 'Quebec pharmacists can assess and prescribe for many conditions — no referral needed.' },
+  monitor_side_effects: { icon: '👁', label: 'Monitor for side effects',              detail: 'Watch for any unusual reactions and contact a provider if symptoms worsen.' },
+  check_interactions:   { icon: '⚠️', label: 'Check drug interactions with pharmacist', detail: 'Ask your pharmacist to review all your current medications for potential interactions.' },
+};
+
+const NAV_CONFIG: Record<string, { icon: React.JSX.Element; label: string; detail: string; color: string; bg: string; border: string }> = {
   stay_home:        { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Stay home & rest',         detail: 'Manage your symptoms at home with the self-care guidance below.',                                                    color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
   call_811:         { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>, label: 'Call 811 (Info-Sante)',     detail: 'Speak with a registered nurse 24/7 for guidance. Free, confidential, available in English and French.',            color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
   see_pharmacist:   { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>, label: 'See your pharmacist',       detail: 'Quebec pharmacists can prescribe for this type of concern. Visit any pharmacy - no appointment needed.',           color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
   walk_in_soon:     { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2-5 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
   book_appointment: { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>, label: 'Book an appointment',       detail: 'Schedule a follow-up with your healthcare provider or request a specialist referral.',                             color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
   er_now:           { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>, label: 'Go to Emergency now',       detail: 'Your symptoms need same-day evaluation. Go to your nearest emergency department or call 911 if worsening rapidly.', color: '#991b1b', bg: '#fff1f2', border: '#fecaca' },
+  // legacy keys
   walkin_soon:      { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2-5 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
   self_care:        { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Stay home & rest',         detail: 'Manage your symptoms at home with the self-care guidance below.',                                                    color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
 };
@@ -24,9 +35,6 @@ const NAV_CONFIG: Record<NavigationAction, { icon: React.JSX.Element; label: str
 const DISCLAIMER =
   'This response is for informational purposes only and does not replace professional medical advice. If your symptoms worsen or you have concerns, contact a healthcare provider.';
 
-// ---------------------------------------------------------------------------
-// Lightweight markdown renderer - handles **bold**, bullet lists, newlines.
-// ---------------------------------------------------------------------------
 function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split('\n');
   const output: React.ReactNode[] = [];
@@ -218,16 +226,56 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
       : OUTCOME_CONFIG.self_manageable;
     const nihs: NihSource[] = response.nih_sources ?? [];
     const hasSBAR = response.sbar_situation || response.sbar_background || response.sbar_assessment || response.sbar_recommendation;
+    const pharmacyActions: string[] = response.pharmacy_actions ?? [];
+    const hasPharmacy = response.outcome === 'pharmacy_guidance' || pharmacyActions.length > 0;
 
     return (
       <StatusShell>
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '24px 22px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)' }}>
+
           {/* Outcome badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: cfg.bg, border: `1.5px solid ${cfg.border}`, borderRadius: 7, padding: '7px 13px', marginBottom: 18 }}>
             <span style={{ width: 8, height: 8, background: cfg.color, borderRadius: '50%', display: 'inline-block' }} />
             <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
           </div>
 
+          {/* Pharmacy guidance block */}
+          {hasPharmacy && (
+            <div style={{ background: '#f5f3ff', border: '1.5px solid #ddd6fe', borderRadius: 8, padding: '16px 18px', marginBottom: 20 }}>
+              <p style={{ margin: '0 0 12px', fontSize: 11, fontWeight: 700, color: '#5b21b6', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Pharmacy &amp; Medication Actions</p>
+              {pharmacyActions.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: response.pharmacy_medications || response.pharmacy_note ? 14 : 0 }}>
+                  {pharmacyActions.map(key => {
+                    const action = PHARMACY_ACTION_LABELS[key];
+                    if (!action) return null;
+                    return (
+                      <div key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'white', border: '1px solid #ddd6fe', borderRadius: 7, padding: '10px 12px' }}>
+                        <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{action.icon}</span>
+                        <div>
+                          <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#4c1d95' }}>{action.label}</p>
+                          <p style={{ margin: 0, fontSize: 12, color: '#6d28d9', opacity: 0.8, lineHeight: 1.5 }}>{action.detail}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {response.pharmacy_medications && (
+                <div style={{ marginBottom: response.pharmacy_note ? 10 : 0 }}>
+                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#5b21b6', letterSpacing: '0.7px', textTransform: 'uppercase' }}>Medication instructions</p>
+                  <p style={{ margin: 0, fontSize: 13.5, color: '#3b0764', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{response.pharmacy_medications}</p>
+                </div>
+              )}
+              {response.pharmacy_note && (
+                <div>
+                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#5b21b6', letterSpacing: '0.7px', textTransform: 'uppercase' }}>Note from your provider</p>
+                  <p style={{ margin: 0, fontSize: 13, color: '#4c1d95', lineHeight: 1.65 }}>{response.pharmacy_note}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SBAR */}
           {hasSBAR ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
               {response.sbar_situation && <SbarSection label="Situation" text={response.sbar_situation} />}
@@ -241,11 +289,21 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
+          {/* Conditional detail blocks */}
           {response.followup_days != null && <Detail label="Follow up in" value={`${response.followup_days} day${response.followup_days !== 1 ? 's' : ''}`} />}
           {response.watch_for && <Detail label="Watch for" value={response.watch_for} />}
           {response.provider_type && <Detail label="See a" value={`${response.provider_type}${response.timeframe ? ` within ${response.timeframe}` : ''}`} />}
           {response.urgency_note && <Detail label="Urgent action" value={response.urgency_note} accent />}
 
+          {/* Doctor question to patient */}
+          {response.doctor_question && (
+            <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 8, padding: '14px 16px', marginTop: 4, marginBottom: 4 }}>
+              <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 700, color: '#92400e', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Your provider has a question for you</p>
+              <p style={{ margin: 0, fontSize: 14, color: '#78350f', lineHeight: 1.7, fontWeight: 500 }}>{response.doctor_question}</p>
+            </div>
+          )}
+
+          {/* NIH sources */}
           {nihs.length > 0 && (
             <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', marginTop: 20 }}>
               <button

@@ -11,7 +11,8 @@ export type TriageOutcome =
   | 'self_manageable'
   | 'monitor'
   | 'book_appointment'
-  | 'urgent';
+  | 'urgent'
+  | 'pharmacy_guidance';
 
 export type NavigationAction =
   | 'stay_home'       // Tier 0 — self-care
@@ -83,6 +84,12 @@ export interface Response {
   sbar_background: string | null;
   sbar_assessment: string | null;
   sbar_recommendation: string | null;
+  // Pharmacy guidance
+  pharmacy_actions: string[];       // selected quick-action keys
+  pharmacy_medications: string | null;  // free-text medication instructions
+  pharmacy_note: string | null;     // additional pharmacy free-text
+  // Doctor direct question to patient
+  doctor_question: string | null;
   created_at: string;
 }
 
