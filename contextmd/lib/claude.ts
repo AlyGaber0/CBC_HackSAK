@@ -93,7 +93,9 @@ ${nihContextText || 'No NIH data retrieved for this case.'}
     messages: [{ role: 'user', content: userMessage }],
   });
 
-  const text = response.content[0].type === 'text' ? response.content[0].text : '';
+  const raw = response.content[0].type === 'text' ? response.content[0].text : '';
+  // Strip markdown code fences Claude sometimes adds despite instructions
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
   const parsed = JSON.parse(text) as TriageAIResult;
 
   // Attach retrieved NIH sources to result
