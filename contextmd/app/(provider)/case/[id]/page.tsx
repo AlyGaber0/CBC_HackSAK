@@ -179,11 +179,6 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
             {tierCfg.label}
           </span>
         </div>
-        {caseData.ai_tier_reasoning && (
-          <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0', lineHeight: 1.5 }}>
-            {caseData.ai_tier_reasoning}
-          </p>
-        )}
       </div>
 
       {/* AI navigation action banner — what the patient was already told */}
@@ -215,6 +210,13 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
         {/* LEFT — Brief + intake */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Tier reasoning */}
+          {caseData.ai_tier_reasoning && (
+            <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6 }}>
+              {caseData.ai_tier_reasoning}
+            </p>
+          )}
 
           {/* AI Clinical Brief */}
           {brief && (
@@ -556,7 +558,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                 placeholder="e.g. Try over-the-counter ibuprofen 400mg every 6 hours. Apply a warm compress to your neck and temples..."
                 value={sbarRecommendation}
                 onChange={e => setSbarRecommendation(e.target.value)}
-                rows={4}
+                rows={2}
                 className="resize-none"
               />
             </div>

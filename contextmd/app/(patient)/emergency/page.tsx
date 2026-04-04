@@ -11,8 +11,8 @@ export default function EmergencyPage() {
 
   if (confirmed) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 16px' }}>
-        <div style={{ maxWidth: 480, width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 16px' }}>
+        <div style={{ maxWidth: 680, width: '100%' }}>
           <div style={{ background: '#fff8f0', border: '1.5px solid #ef4444', borderRadius: 10, padding: '32px 32px 28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
               <div style={{ width: 36, height: 36, background: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -39,18 +39,21 @@ export default function EmergencyPage() {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 16px' }}>
-      <div style={{ maxWidth: 480, width: '100%' }}>
-        <div style={{ marginBottom: 32 }}>
-          <h1 style={{ margin: '0 0 10px', fontSize: 26, fontWeight: 700, color: '#0f2744', letterSpacing: '-0.5px' }}>
-            Before we begin
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 16px' }}>
+      <div style={{ maxWidth: 680, width: '100%' }}>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ margin: '0 0 10px', fontSize: 28, fontWeight: 700, color: '#0f2744', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+            Describe your concern.<br />Get clinical guidance.
           </h1>
-          <p style={{ margin: 0, fontSize: 15, color: '#475569', lineHeight: 1.65 }}>
+          <p style={{ margin: '0 0 14px', fontSize: 14, color: '#64748b', fontWeight: 400, lineHeight: 1.65 }}>
             Triaje helps you describe your symptoms and get asynchronous clinical guidance. It is not a substitute for emergency care.
+          </p>
+          <p style={{ margin: 0, fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5 }}>
+            1. Describe your symptoms &rarr; 2. We organize your case &rarr; 3. Get a response grounded in NIH clinical data
           </p>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 2px 8px rgba(15,39,68,0.06)', overflow: 'hidden', marginBottom: 20 }}>
+        <div style={{ background: 'white', borderLeft: '3px solid #ef4444', borderTop: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 2px 8px rgba(15,39,68,0.06)', overflow: 'hidden', marginBottom: 24 }}>
           <div style={{ padding: '24px 28px', borderBottom: '1px solid #f1f5f9' }}>
             <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
               Emergency check
@@ -76,24 +79,29 @@ export default function EmergencyPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+        <p style={{ margin: '0 0 4px', fontSize: 12, color: '#94a3b8', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ fontSize: 13 }}>&#10003;</span>
+          Responses grounded in NIH MedlinePlus and PubMed clinical literature.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 20 }}>
           <button
             onClick={() => setConfirmed(true)}
-            style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '13px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+            style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, padding: '11px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
           >
             <span>Yes, I may be having an emergency</span>
-            <span style={{ fontSize: 18 }}>→</span>
+            <span>→</span>
           </button>
           <button
             onClick={() => router.push('/chat')}
-            style={{ background: '#0f2744', color: 'white', border: 'none', borderRadius: 8, padding: '13px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+            style={{ flex: 1, background: '#1a2332', color: 'white', border: 'none', borderRadius: 8, padding: '11px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}
           >
             <span>No, continue to symptom intake</span>
-            <span style={{ fontSize: 18 }}>→</span>
+            <span>→</span>
           </button>
         </div>
 
-        <p style={{ margin: 0, fontSize: 11.5, color: '#94a3b8', lineHeight: 1.6 }}>
+        <p style={{ margin: '20px 0 0', fontSize: 11.5, color: '#94a3b8', lineHeight: 1.6 }}>
           {DISCLAIMER}
         </p>
       </div>
