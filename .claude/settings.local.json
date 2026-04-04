@@ -21,7 +21,15 @@
       "Bash(curl -s \"http://localhost:3000/api/cases/ddbae6b8-1c1f-47b6-b77d-d56163b66d31\")",
       "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const c=JSON.parse\\(d\\); console.log\\('tier:', c.tier, 'status:', c.status, 'ai_brief:', c.ai_brief ? 'populated' : 'null'\\);\")",
       "Bash(git commit -m 'fix: strip markdown code fences from Claude response before JSON.parse:*)",
-      "Read(//Users/aly/.claude/projects/-Users-aly-CBC-HackSAK/82a4ad59-6a8f-4cac-bfba-7b1ed15d7a16/subagents/**)"
+      "Read(//Users/aly/.claude/projects/-Users-aly-CBC-HackSAK/82a4ad59-6a8f-4cac-bfba-7b1ed15d7a16/subagents/**)",
+      "Bash(npm install:*)",
+      "Bash(ls /Users/aly/CBC_HackSAK/contextmd/app/api/cases/[id]/)",
+      "Bash(node -e \"const { z } = require\\('zod'\\); console.log\\(z.string\\(\\).max\\(100\\).parse\\('hello'\\)\\)\")",
+      "Bash(sed -i '' 's/rateLimit\\(getIp\\(req\\), '\\\\''create_case'\\\\'', 10, 60_000\\)/rateLimit\\(`${getIp\\(req\\)}:create_case`, 10, 60_000\\)/' /Users/aly/CBC_HackSAK/contextmd/app/api/cases/route.ts)",
+      "Bash(sed -i '' 's/rateLimit\\(getIp\\(req\\), '\\\\''claim'\\\\'', 20, 60_000\\)/rateLimit\\(`${getIp\\(req\\)}:claim`, 20, 60_000\\)/' '/Users/aly/CBC_HackSAK/contextmd/app/api/cases/[id]/claim/route.ts')",
+      "Bash(sed -i '' 's/rateLimit\\(getIp\\(req\\), '\\\\''respond'\\\\'', 10, 60_000\\)/rateLimit\\(`${getIp\\(req\\)}:respond`, 10, 60_000\\)/' '/Users/aly/CBC_HackSAK/contextmd/app/api/respond/[id]/route.ts')",
+      "Bash(sed -i '' 's/rateLimit\\(getIp\\(req\\), '\\\\''triage'\\\\'', 5, 60_000\\)/rateLimit\\(`${getIp\\(req\\)}:triage`, 5, 60_000\\)/' /Users/aly/CBC_HackSAK/contextmd/app/api/triage/route.ts)",
+      "Bash(sed -i '' 's/rateLimit\\(getIp\\(req\\), '\\\\''translate'\\\\'', 20, 60_000\\)/rateLimit\\(`${getIp\\(req\\)}:translate`, 20, 60_000\\)/' /Users/aly/CBC_HackSAK/contextmd/app/api/translate/route.ts)"
     ]
   }
 }

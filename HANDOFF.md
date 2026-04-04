@@ -1,170 +1,217 @@
-# Triaje — Handoff Context
+# triaje — Project Handoff
 
-## What This Project Is
-
-**Triaje** is an async medical triage app for patients without a family doctor. Patients submit structured symptom reports; Claude + NIH APIs score complexity and generate or route a triage response. Built for a hackathon.
-
-The Next.js app lives in `contextmd/`. All commands run from inside that directory.
+Async medical triage navigation for patients without a family doctor.
+Built for CBC HackSAK 2026.
 
 ---
 
-## Current State (as of 2026-04-03)
+## What the product does
 
-### What's Done
+Patients submit a structured symptom report through a guided chatbot. Claude (Anthropic) + four NIH APIs analyze the case and score its clinical complexity. The result is either an instant self-care plan (simple cases) or a case card routed to a licensed provider who reviews and writes a structured SBAR response. The patient's status page updates in real time.
 
-**Phase 0 — Scaffold**
-- Next.js 16 app in `contextmd/` with Supabase, Zustand, shadcn/ui, Jest, Anthropic SDK
-
-**Phase 1 — Backend (all complete)**
-- `lib/types.ts` — all shared types (Case, Response, ClinicalBrief, TriageAIResult, IntakeFormState)
-- `lib/supabase.ts` — anon client + admin client (service role, API routes only)
-- `lib/nih.ts` — 4 NIH APIs (MedlinePlus, PubMed, RxNorm, OpenFDA) via `gatherNihContext()`
-- `lib/triage.ts` — `checkTier4()` / `checkAnyTier4()` client-side red flag detection
-- `lib/store.ts` — Zustand IntakeStore with `persist` middleware, key `triaje-intake`
-- `lib/claude.ts` — `runTriageAI()` using `claude-sonnet-4-6`, returns `TriageAIResult`
-- `supabase/migrations/001_initial.sql` — `cases` + `responses` tables, RLS allow-all policies
-
-**API Routes (all complete)**
-- `POST /api/cases` — create case, `GET /api/cases` — list by patient_id or provider
-- `GET /api/cases/[id]`, `PATCH /api/cases/[id]`
-- `POST /api/cases/[id]/claim` — atomic claim with 409 on conflict
-- `POST /api/triage` — gatherNihContext → runTriageAI → update case; auto-response for tier 0
-- `POST /api/respond/[id]` — provider submits response, case → `response_ready`
-
-**Provider UI (complete)**
-- `app/(provider)/layout.tsx` — navy nav, "triaje" wordmark, sets localStorage role
-- `app/(provider)/worklist/page.tsx` — dense table, left-accent urgency borders, tier badges, live indicator
-- `app/(provider)/case/[id]/page.tsx` — two-column layout: AI brief + patient context left, 2×2 outcome selector + submit right
-
-**Patient UI (complete as of this handoff)**
-- `app/page.tsx` — redirects to `/emergency` ✓
-- `app/(patient)/layout.tsx` — navy nav, sets `contextmd_patient_id` UUID in localStorage ✓
-- `app/(patient)/emergency/page.tsx` — emergency gate: red flags list, "Yes → call 911" / "No → /intake" ✓
-- `app/(patient)/intake/page.tsx` — 8-step intake form ✓ ← **built this session**
-- `app/(patient)/status/[id]/page.tsx` — polling status + response card ✓ ← **built this session**
+No family doctor required on the patient side. Providers work entirely from a browser — no installation, no EMR login.
 
 ---
 
-## What Was Built This Session (Person A — Karim)
+## User flows
 
-### `app/(patient)/intake/page.tsx`
-Full 8-step intake form using `useIntakeStore` from `lib/store.ts`.
+### Patient
 
-Design choices implemented:
-- **Progress bar** (Q1:B): `Step X of 8` left, current step name right, thin navy fill bar with CSS transition
-- **Pain slider** (Q2:B): labeled tick marks — `0 None`, `5 Moderate`, `10 Worst` — displayed below the slider
-- **Tier 4 gate** (Q3:C): fixed overlay modal with dimmed backdrop on the symptom step — shows "Call 911 Now →" (red button) and "Edit my description" (ghost button) when red-flag keywords are detected
-- Submit calls `POST /api/cases` with camelCase fields (`patientId`, not `patient_id`), fire-and-forget `POST /api/triage`, then `router.push('/status/[id]')`
-- Error handling surfaces the actual API error message from the response body
+1. **Emergency gate** (`/emergency`) — symptom red-flag check. Tier 4 keywords block progression and direct to 911.
+2. **Intake chatbot** (`/chat`) — 10-step guided conversation collects body location, symptom type, timeline, severity (0–10 slider), associated symptoms, photos (simulated), free text, up to 3 questions, and medical history.
+3. **Triage** — on submit, NIH APIs (MedlinePlus, PubMed, RxNorm, OpenFDA) run in parallel. Claude receives the full intake + NIH context and returns a clinical brief, tier (0–3), navigation action, and medication flags.
+   - Tier 0: Claude writes a self-care response immediately, no provider needed.
+   - Tier 1–3: case goes to the provider worklist.
+4. **Status page** (`/status/[id]`) — polls every 5 s. Shows processing → awaiting review → provider response with full SBAR, outcome card, pharmacy steps (if applicable), and follow-up details.
 
-### `app/(patient)/status/[id]/page.tsx`
-Polling status page using `use(params)` (required for Next.js 16 client components).
+### Provider
 
-Design choices implemented:
-- `processing` — centered spinner with "Analysing your symptoms" heading
-- `awaiting_review` / `in_review` (Q4:B) — green pulse badge, descriptive copy, footer showing "Most responses arrive within a few hours · Updates automatically"
-- `response_ready` (Q5:A) — single scrollable card: outcome badge → provider message → conditional detail pills (followup_days, watch_for, provider_type+timeframe, urgency_note) → collapsible NIH sources → always-visible disclaimer
-
-### Bug fix: Provider worklist URL
-`app/(provider)/worklist/page.tsx` had a pre-existing bug routing to `/provider/case/${id}` — a non-existent URL (route groups don't appear in URLs). Fixed both instances to `/case/${id}`.
+1. **Worklist** (`/worklist`) — live-updating table of pending cases sorted by tier then age. Left border = tier severity color, age dot = wait time since submission (green < 6 h → red > 24 h).
+2. **Case detail** (`/case/[id]`) — full AI clinical brief, medication flags, NIH context, patient questions, patient description, medical history, photos list. Provider selects an outcome, fills SBAR fields, optionally fills conditional panels (monitor / appointment / urgent / pharmacy), and optionally asks a follow-up question to the patient.
+3. **Submit** — response saved, patient status page updates instantly.
 
 ---
 
-## What Still Needs to Be Done
+## Tech stack
 
-### 1. Run the database migration — REQUIRED BEFORE TESTING
-The Supabase tables have **not been created yet** in the connected project. The app will return a `500 "Could not find the table 'public.cases'"` error until this is done.
-
-**Steps:**
-1. Go to [supabase.com](https://supabase.com) → open the project
-2. Click **SQL Editor** in the left sidebar
-3. Copy the full contents of `supabase/migrations/001_initial.sql`
-4. Paste into SQL Editor and click **Run**
-
-This creates the `cases` and `responses` tables with RLS allow-all policies. It only needs to be run once.
-
-### 2. Test the full end-to-end flow
-Once the migration is run, test this sequence:
-1. Visit `http://localhost:3000` → should redirect to `/emergency`
-2. Pass emergency gate → complete 8-step intake form → submit
-3. Check `/status/[id]` — should show processing spinner, then transition to awaiting state
-4. Visit `/worklist` (provider view) — submitted case should appear
-5. Claim the case → complete the response form → submit
-6. Check the patient `/status/[id]` — should show the response card
-
-### 3. Deploy to Vercel (when ready)
-- Push the repo to GitHub
-- Import into [vercel.com](https://vercel.com)
-- Set the **Root Directory** to `contextmd`
-- Add all env vars in Vercel Dashboard → Project → Settings → Environment Variables:
-  ```
-  NEXT_PUBLIC_SUPABASE_URL
-  NEXT_PUBLIC_SUPABASE_ANON_KEY
-  SUPABASE_SERVICE_ROLE_KEY
-  ANTHROPIC_API_KEY
-  ```
+| Layer         | Technology                                                     |
+| ------------- | -------------------------------------------------------------- |
+| Framework     | Next.js 16 App Router (Turbopack)                              |
+| Language      | TypeScript 5                                                   |
+| Database      | Supabase (PostgreSQL + JSONB)                                  |
+| AI            | Claude Sonnet 4.6 (triage), Claude Haiku 4.5 (translation)     |
+| Clinical APIs | NIH MedlinePlus, PubMed, RxNorm, OpenFDA                       |
+| Styling       | Inline styles + Radix UI primitives + Tailwind utility classes |
+| State         | Zustand (intake form), React useState (everything else)        |
+| Email         | Resend (case confirmation + response notification)             |
+| Validation    | Zod v4                                                         |
+| i18n          | Custom context + localStorage (no external library)            |
 
 ---
 
-## Environment Setup
-
-Each developer needs a `contextmd/.env.local` file (not committed to git). Structure:
+## Architecture
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-ANTHROPIC_API_KEY=sk-ant-...
+app/
+├── (patient)/          Patient-facing route group
+│   ├── emergency/      Red-flag gate — entry point for all patients
+│   ├── chat/           10-step intake chatbot
+│   ├── intake/         Alternative form-based intake
+│   └── status/[id]/    Real-time case status + response card
+│
+├── (provider)/         Provider-facing route group
+│   ├── worklist/       Live case queue
+│   └── case/[id]/      Case detail + SBAR response form
+│
+└── api/
+    ├── cases/          GET (list) · POST (create) · DELETE (dev wipe)
+    ├── cases/[id]/     GET (fetch single)
+    ├── cases/[id]/claim/  POST (atomic claim with 409 on double-claim)
+    ├── respond/[id]/   POST (save provider SBAR response)
+    ├── triage/         POST (Claude + NIH pipeline, fires background FR translation)
+    └── translate/      POST (on-demand French translation for older cases)
+
+lib/
+├── claude.ts           runTriageAI() — structured JSON contract with Claude Sonnet
+├── nih.ts              gatherNihContext() — 4 NIH APIs in parallel, 5 s timeout each
+├── triage.ts           checkTier4() — client-side red-flag keyword detection
+├── translateBrief.ts   translateBriefToFrench() — Haiku translation, stores in ai_brief.fr
+├── supabase.ts         anon client (browser) + admin client (API routes only)
+├── types.ts            All shared TypeScript types
+├── rateLimit.ts        In-memory rate limiter (per-IP, per-endpoint)
+├── auth.ts             requireProviderAuth() — x-provider-token header check
+├── providerFetch.ts    Client-side fetch wrapper that injects auth header
+├── validation.ts       Zod schemas for all API routes
+└── i18n/
+    ├── translations.ts Full EN/FR translation object (patient + provider)
+    ├── LanguageContext.tsx  React context with localStorage persistence
+    ├── useT.ts         useT() hook — returns current language's translations
+    └── translateCaseOption()  Maps DB-stored option values across languages
+
+components/
+├── ErrorBoundary.tsx   React class error boundary wrapping both layouts
+├── LanguageToggle.tsx  EN/FR toggle button
+├── WorklistDevBar.tsx  Demo controls bar (provider)
+└── DemoPanel.tsx       Demo controls panel (patient)
+
+proxy.ts                Next.js 16 proxy (replaces middleware.ts) — CORS headers
+db/indexes.sql          SQL to run in Supabase: 6 indexes on cases + responses tables
 ```
 
-**Important:** The file must be inside `contextmd/`, not the repo root. Next.js only reads `.env.local` from its own directory.
+---
+
+## Triage tier system
+
+| Tier | Meaning                                  | Outcome                                       |
+| ---- | ---------------------------------------- | --------------------------------------------- |
+| 4    | Red flags (chest pain, stroke, etc.)     | Blocked client-side, redirect to 911          |
+| 3    | High severity / rapidly worsening        | Provider queue — urgent response              |
+| 2    | Moderate / changing features             | Provider queue — appointment/walk-in response |
+| 1    | Stable, low severity                     | Provider queue — monitor response             |
+| 0    | Clearly benign, NIH-documented self-care | Auto-resolved, no provider needed             |
 
 ---
 
-## Design System
+## Security & robustness
 
-**Colors:**
-- Navy: `#0f2744` — nav, primary buttons, headings
-- Surface: `#f8fafc` — page background
-- Card bg: `white`, border: `#e2e8f0`, shadow: `0 2px 8px rgba(15,39,68,0.06)`
-- Urgency (ONLY saturated colors):
-  - Tier 3 / urgent: `#ea580c` (red-orange)
-  - Tier 2 / book_appointment: `#ca8a04` (amber)
-  - Tier 1 / monitor: `#3b82f6` (blue)
-  - Tier 0 / self_manageable: `#16a34a` (green)
-- Text: `#1e293b` primary, `#475569` secondary, `#94a3b8` muted
-
-**Typography:** Inter, all inline styles (no Tailwind classes)
-
-**Component style:** Inline styles only (no className). Cards with border + box-shadow. Buttons: navy fill for primary, ghost/border for secondary.
+| Feature                 | Implementation                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| **Input validation**    | Zod schemas on every API route — UUID checks, max lengths, enum enforcement             |
+| **Auth**                | Provider-only routes check `x-provider-token` header against `PROVIDER_SECRET` env var  |
+| **CORS**                | `proxy.ts` rejects cross-origin requests not matching `ALLOWED_ORIGIN` env var          |
+| **Rate limiting**       | In-memory per-IP limits: 5 req/min (triage), 10 (create/respond), 20 (claim/translate)  |
+| **Error boundaries**    | React `ErrorBoundary` wraps both patient and provider layouts                           |
+| **Sanitized errors**    | API routes return generic messages, never raw DB errors                                 |
+| **Admin key isolation** | `supabaseAdmin` (service role) only imported in `app/api/` — never in client components |
 
 ---
 
-## Architecture Notes
+## Bilingual support (EN / FR)
 
-- `(patient)` route group = patient-facing URLs: `/emergency`, `/intake`, `/status/[id]`
-- `(provider)` route group = provider URLs: `/worklist`, `/case/[id]`
-- Route groups **do not appear in URLs** — the parens are layout grouping only
-- `supabaseAdmin` (service role) ONLY in `app/api/` — never in client components
-- `NEXT_PUBLIC_` prefix only on `SUPABASE_URL` and `SUPABASE_ANON_KEY`
-- Patient ID: UUID in `localStorage('contextmd_patient_id')`, set by `(patient)/layout.tsx`
-- Provider role: set by `(provider)/layout.tsx` via `localStorage('triaje_role', 'provider')`
-- Next.js 16 async params: `await params` in server route handlers, `use(params)` in client components
+- Patients and providers each have an independent language toggle stored in `localStorage`.
+- All UI strings (labels, placeholders, options, buttons) switch instantly.
+- Patient-submitted `body_location` and `symptom_type` are always stored as English values using `optionValues` — so a French patient's case shows correctly in the doctor's chosen language.
+- At triage time, Claude Haiku translates the full AI clinical brief into French in the background (fire-and-forget) and stores it in `ai_brief.fr`. Providers in French mode read the pre-stored translation instantly — zero wait.
+- Older cases fall back to an on-demand translation call.
 
-## How to Run
+---
+
+## Environment variables
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Anthropic
+ANTHROPIC_API_KEY=
+
+# Resend (email notifications — optional)
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+
+# App
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+
+# Security
+PROVIDER_SECRET=your-provider-secret
+NEXT_PUBLIC_PROVIDER_SECRET=your-provider-secret   # same value, exposed to client
+ALLOWED_ORIGIN=https://your-app.vercel.app          # leave blank in dev (allows all)
+```
+
+---
+
+## Database setup
+
+Run `db/indexes.sql` in the Supabase SQL editor after deploying:
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_cases_status ON cases (status);
+CREATE INDEX IF NOT EXISTS idx_cases_patient_id ON cases (patient_id);
+CREATE INDEX IF NOT EXISTS idx_cases_tier ON cases (tier);
+CREATE INDEX IF NOT EXISTS idx_cases_submitted_at ON cases (submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_cases_status_submitted ON cases (status, submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_responses_case_id ON responses (case_id);
+```
+
+---
+
+## Running locally
 
 ```bash
 cd contextmd
-npm install        # first time only
+npm install
+# create .env.local with the vars above
 npm run dev        # http://localhost:3000
-npm run build      # verify types pass
-npm test           # run all tests
+npm run build      # production build
+npm test           # jest test suite
 ```
+
+Patient entry: `http://localhost:3000/emergency`
+Provider entry: `http://localhost:3000/worklist`
 
 ---
 
-## People
+## Demo mode
 
-- **Person C (Samyar)** — built all backend: Supabase schema, API routes, Claude triage, NIH lib
-- **Person B (Aly)** — built provider UI: worklist, case detail, response form
-- **Person A (Karim)** — built patient UI: emergency gate, intake form, status page
+The `WorklistDevBar` (provider) and `DemoPanel` (patient) let you inject pre-built cases without going through the full intake flow:
+
+| Demo key               | Scenario                                      |
+| ---------------------- | --------------------------------------------- |
+| `tier0_sunburn`        | Mild sunburn — auto-resolved with self-care   |
+| `tier1_cold`           | Viral URI — stable, low severity              |
+| `tier2_backpain`       | Severe radicular back pain + medication flags |
+| `tier2_cough_medflags` | ACE-inhibitor cough — drug-induced            |
+| `tier2_pharmacist`     | Uncomplicated UTI — Quebec pharmacist route   |
+| `tier3_urgent`         | Necrotising fasciitis — ER now                |
+
+---
+
+## Intentionally out of scope (hackathon)
+
+- Real authentication (OAuth / sessions) — replaced by shared provider token
+- Actual photo storage — photo count and names stored, no file upload
+- HIPAA / PHIPA compliance — demo data only, not for clinical use
+- Push notifications — patient polls every 5 s instead
+- Multi-language AI output — triage brief generated in English, translated by Haiku post-hoc
