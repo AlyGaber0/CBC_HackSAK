@@ -11,7 +11,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .insert({
       case_id: id,
       outcome: body.outcome,
-      message: body.message,
+      message: '', // Deprecated — replaced by SBAR fields but kept for schema compatibility
+      sbar_situation: body.sbar_situation,
+      sbar_background: body.sbar_background,
+      sbar_assessment: body.sbar_assessment,
+      sbar_recommendation: body.sbar_recommendation,
       followup_days: body.followup_days ?? null,
       watch_for: body.watch_for ?? null,
       provider_type: body.provider_type ?? null,

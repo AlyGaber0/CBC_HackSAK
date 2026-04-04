@@ -16,7 +16,7 @@ const config: Config = {
       testMatch: ['**/__tests__/components/**/*.test.tsx', '**/__tests__/lib/store.test.ts'],
       transform: { '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }] },
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/$1' },
-      setupFilesAfterFramework: ['<rootDir>/jest.setup.ts'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     },
   ],
   collectCoverageFrom: ['lib/**/*.ts', 'app/api/**/*.ts'],

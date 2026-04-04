@@ -4,7 +4,9 @@
 
 **Triaje** is an async medical triage app for patients without a family doctor. Patients submit structured symptom reports; Claude + NIH APIs score complexity and generate or route a triage response. Built for a hackathon.
 
-The Next.js app lives at `/Users/aly/CBC_HackSAK/contextmd/`. All commands run from inside that directory.
+The Next.js app lives in `contextmd/`. All commands run from inside that directory.
+
+---
 
 ## Current State (as of 2026-04-03)
 
@@ -12,7 +14,6 @@ The Next.js app lives at `/Users/aly/CBC_HackSAK/contextmd/`. All commands run f
 
 **Phase 0 — Scaffold**
 - Next.js 16 app in `contextmd/` with Supabase, Zustand, shadcn/ui, Jest, Anthropic SDK
-- `.env.local` at `/Users/aly/CBC_HackSAK/.env.local` with Supabase + Anthropic keys
 
 **Phase 1 — Backend (all complete)**
 - `lib/types.ts` — all shared types (Case, Response, ClinicalBrief, TriageAIResult, IntakeFormState)
@@ -30,70 +31,95 @@ The Next.js app lives at `/Users/aly/CBC_HackSAK/contextmd/`. All commands run f
 - `POST /api/triage` — gatherNihContext → runTriageAI → update case; auto-response for tier 0
 - `POST /api/respond/[id]` — provider submits response, case → `response_ready`
 
-**Provider UI (Person B — complete)**
+**Provider UI (complete)**
 - `app/(provider)/layout.tsx` — navy nav, "triaje" wordmark, sets localStorage role
 - `app/(provider)/worklist/page.tsx` — dense table, left-accent urgency borders, tier badges, live indicator
 - `app/(provider)/case/[id]/page.tsx` — two-column layout: AI brief + patient context left, 2×2 outcome selector + submit right
 
-**Patient UI (Person A — IN PROGRESS)**
+**Patient UI (complete as of this handoff)**
 - `app/page.tsx` — redirects to `/emergency` ✓
 - `app/(patient)/layout.tsx` — navy nav, sets `contextmd_patient_id` UUID in localStorage ✓
 - `app/(patient)/emergency/page.tsx` — emergency gate: red flags list, "Yes → call 911" / "No → /intake" ✓
-- `app/(patient)/intake/page.tsx` — **NOT YET CREATED** ← this is where we stopped
-- `app/(patient)/status/[id]/page.tsx` — **NOT YET CREATED**
+- `app/(patient)/intake/page.tsx` — 8-step intake form ✓ ← **built this session**
+- `app/(patient)/status/[id]/page.tsx` — polling status + response card ✓ ← **built this session**
 
-### What Needs to Be Built Next
+---
 
-#### 1. `app/(patient)/intake/page.tsx` — 8-step intake form
+## What Was Built This Session (Person A — Karim)
 
-This is the main thing left. Uses the Zustand `useIntakeStore` from `lib/store.ts`.
+### `app/(patient)/intake/page.tsx`
+Full 8-step intake form using `useIntakeStore` from `lib/store.ts`.
 
-**8 steps (in order):**
-1. **Body location** — `bodyLocation` (select: Head/Neck, Chest, Abdomen, Back, Arms/Hands, Legs/Feet, Skin/General) + `bodySubLocation` (text input, optional)
-2. **Symptom type + description** — `symptomType` (select: Pain, Swelling, Rash, Discharge, Fatigue, Other) + `symptomDescription` (textarea). Run `checkAnyTier4([symptomDescription])` here — if true, block and show "Call 911" message.
-3. **Timeline** — `timelineStart` (date input) + `timelineChanged` (select: better/worse/same)
-4. **Severity** — `painSeverity` (slider 0–10) + `associatedSymptoms` (checkboxes: Fever, Nausea, Fatigue, Headache, Shortness of breath, Dizziness, Vomiting, Loss of appetite)
-5. **Photos** — simulated upload. Show file input, store `photoCount` and `photoNames` (no actual file upload)
-6. **Free text** — `freeText` textarea, "describe in your own words"
-7. **Patient questions** — 3 labelled text inputs (`patientQuestions[0..2]`)
-8. **Medical history** — `medicalConditions`, `medications`, `allergies` (3 textareas)
+Design choices implemented:
+- **Progress bar** (Q1:B): `Step X of 8` left, current step name right, thin navy fill bar with CSS transition
+- **Pain slider** (Q2:B): labeled tick marks — `0 None`, `5 Moderate`, `10 Worst` — displayed below the slider
+- **Tier 4 gate** (Q3:C): fixed overlay modal with dimmed backdrop on the symptom step — shows "Call 911 Now →" (red button) and "Edit my description" (ghost button) when red-flag keywords are detected
+- Submit calls `POST /api/cases` with camelCase fields (`patientId`, not `patient_id`), fire-and-forget `POST /api/triage`, then `router.push('/status/[id]')`
+- Error handling surfaces the actual API error message from the response body
 
-**On final submit (step 8):**
-```typescript
-// 1. Get patient_id from localStorage
-const patientId = localStorage.getItem('contextmd_patient_id')!;
+### `app/(patient)/status/[id]/page.tsx`
+Polling status page using `use(params)` (required for Next.js 16 client components).
 
-// 2. POST /api/cases with all form data
-const res = await fetch('/api/cases', { method: 'POST', body: JSON.stringify({ patient_id: patientId, ...formData }) });
-const { data } = await res.json();
+Design choices implemented:
+- `processing` — centered spinner with "Analysing your symptoms" heading
+- `awaiting_review` / `in_review` (Q4:B) — green pulse badge, descriptive copy, footer showing "Most responses arrive within a few hours · Updates automatically"
+- `response_ready` (Q5:A) — single scrollable card: outcome badge → provider message → conditional detail pills (followup_days, watch_for, provider_type+timeframe, urgency_note) → collapsible NIH sources → always-visible disclaimer
 
-// 3. Fire-and-forget triage (don't await)
-fetch('/api/triage', { method: 'POST', body: JSON.stringify({ case_id: data.id }) });
+### Bug fix: Provider worklist URL
+`app/(provider)/worklist/page.tsx` had a pre-existing bug routing to `/provider/case/${id}` — a non-existent URL (route groups don't appear in URLs). Fixed both instances to `/case/${id}`.
 
-// 4. Navigate to status page
-router.push(`/status/${data.id}`);
+---
+
+## What Still Needs to Be Done
+
+### 1. Run the database migration — REQUIRED BEFORE TESTING
+The Supabase tables have **not been created yet** in the connected project. The app will return a `500 "Could not find the table 'public.cases'"` error until this is done.
+
+**Steps:**
+1. Go to [supabase.com](https://supabase.com) → open the project
+2. Click **SQL Editor** in the left sidebar
+3. Copy the full contents of `supabase/migrations/001_initial.sql`
+4. Paste into SQL Editor and click **Run**
+
+This creates the `cases` and `responses` tables with RLS allow-all policies. It only needs to be run once.
+
+### 2. Test the full end-to-end flow
+Once the migration is run, test this sequence:
+1. Visit `http://localhost:3000` → should redirect to `/emergency`
+2. Pass emergency gate → complete 8-step intake form → submit
+3. Check `/status/[id]` — should show processing spinner, then transition to awaiting state
+4. Visit `/worklist` (provider view) — submitted case should appear
+5. Claim the case → complete the response form → submit
+6. Check the patient `/status/[id]` — should show the response card
+
+### 3. Deploy to Vercel (when ready)
+- Push the repo to GitHub
+- Import into [vercel.com](https://vercel.com)
+- Set the **Root Directory** to `contextmd`
+- Add all env vars in Vercel Dashboard → Project → Settings → Environment Variables:
+  ```
+  NEXT_PUBLIC_SUPABASE_URL
+  NEXT_PUBLIC_SUPABASE_ANON_KEY
+  SUPABASE_SERVICE_ROLE_KEY
+  ANTHROPIC_API_KEY
+  ```
+
+---
+
+## Environment Setup
+
+Each developer needs a `contextmd/.env.local` file (not committed to git). Structure:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-**Design notes:**
-- Progress bar at top (step X of 8)
-- Card-based, centered, max-width 560px
-- Navy "Continue →" / "Back" buttons
-- Spacious, guided feel — one concept per screen
+**Important:** The file must be inside `contextmd/`, not the repo root. Next.js only reads `.env.local` from its own directory.
 
-#### 2. `app/(patient)/status/[id]/page.tsx` — case status + response view
-
-Polls `GET /api/cases/[id]` every 5 seconds. Shows different UI based on `case.status`:
-
-- `processing` — "We're reviewing your symptoms..." spinner
-- `awaiting_review` / `in_review` — "Your case is with a provider" waiting state
-- `response_ready` — render the full response card (from `case.responses[0]`)
-
-**Response card content (when `response_ready`):**
-- Outcome badge (color-coded: green=self_manageable, blue=monitor, amber=book_appointment, red=urgent)
-- Provider message
-- Conditional fields: followup_days, watch_for, provider_type + timeframe (for book_appointment), urgency_note (for urgent)
-- NIH sources as collapsible citations
-- **Always show disclaimer:** "This response is for informational purposes only and does not replace professional medical advice."
+---
 
 ## Design System
 
@@ -102,21 +128,23 @@ Polls `GET /api/cases/[id]` every 5 seconds. Shows different UI based on `case.s
 - Surface: `#f8fafc` — page background
 - Card bg: `white`, border: `#e2e8f0`, shadow: `0 2px 8px rgba(15,39,68,0.06)`
 - Urgency (ONLY saturated colors):
-  - Tier 3 / urgent: `#ef4444` (red)
-  - Tier 2 / book_appointment: `#f59e0b` (amber)
+  - Tier 3 / urgent: `#ea580c` (red-orange)
+  - Tier 2 / book_appointment: `#ca8a04` (amber)
   - Tier 1 / monitor: `#3b82f6` (blue)
-  - Tier 0 / self_manageable: `#22c55e` (green)
+  - Tier 0 / self_manageable: `#16a34a` (green)
 - Text: `#1e293b` primary, `#475569` secondary, `#94a3b8` muted
 
-**Typography:** Inter, all inline styles (no Tailwind)
+**Typography:** Inter, all inline styles (no Tailwind classes)
 
 **Component style:** Inline styles only (no className). Cards with border + box-shadow. Buttons: navy fill for primary, ghost/border for secondary.
+
+---
 
 ## Architecture Notes
 
 - `(patient)` route group = patient-facing URLs: `/emergency`, `/intake`, `/status/[id]`
 - `(provider)` route group = provider URLs: `/worklist`, `/case/[id]`
-- Route groups don't appear in URLs — the parens are just for layout grouping
+- Route groups **do not appear in URLs** — the parens are layout grouping only
 - `supabaseAdmin` (service role) ONLY in `app/api/` — never in client components
 - `NEXT_PUBLIC_` prefix only on `SUPABASE_URL` and `SUPABASE_ANON_KEY`
 - Patient ID: UUID in `localStorage('contextmd_patient_id')`, set by `(patient)/layout.tsx`
@@ -126,19 +154,17 @@ Polls `GET /api/cases/[id]` every 5 seconds. Shows different UI based on `case.s
 ## How to Run
 
 ```bash
-cd /Users/aly/CBC_HackSAK/contextmd
+cd contextmd
+npm install        # first time only
 npm run dev        # http://localhost:3000
 npm run build      # verify types pass
-npm test           # 52 tests, all passing
+npm test           # run all tests
 ```
 
-## What You Should Do Next
+---
 
-**Continue building the patient UI.** Pick up exactly where we left off:
+## People
 
-1. Create `app/(patient)/intake/page.tsx` — the 8-step intake form (spec above)
-2. Create `app/(patient)/status/[id]/page.tsx` — polling status + response card
-3. Run `npm run build` to verify no type errors
-4. Commit: `git commit -m "feat: patient UX — emergency gate, intake form, status + response view"`
-
-The person giving you this file is Aly. They are the lead developer on this project and have been hands-on throughout. They want clean, professional, production-quality UI — not a generic demo. Follow the design system strictly (inline styles, navy + white + urgency-only color). Do not add features beyond what's listed. Just build the two remaining pages cleanly.
+- **Person C (Samyar)** — built all backend: Supabase schema, API routes, Claude triage, NIH lib
+- **Person B (Aly)** — built provider UI: worklist, case detail, response form
+- **Person A (Karim)** — built patient UI: emergency gate, intake form, status page

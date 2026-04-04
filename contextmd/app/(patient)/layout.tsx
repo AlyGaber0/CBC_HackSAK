@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import DemoPanel from '@/components/DemoPanel';
 
 function ensurePatientId() {
   if (typeof window === 'undefined') return;
@@ -25,6 +26,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
         <span style={{ fontSize: 11.5, color: '#7dd3fc', fontWeight: 500 }}>Symptom Intake</span>
       </div>
       {children}
+      <DemoPanel />
     </div>
   );
 }
