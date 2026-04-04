@@ -13,9 +13,12 @@ const TIER_CONFIG: Record<number, { dot: string; label: string; text: string }> 
 };
 
 function getProviderId(): string {
-  return typeof window !== 'undefined'
-    ? (localStorage.getItem('triaje_provider_id') ?? 'provider-demo-001')
-    : 'provider-demo-001';
+  if (typeof window === 'undefined') return 'provider-demo-001';
+  try {
+    return localStorage.getItem('triaje_provider_id') ?? 'provider-demo-001';
+  } catch {
+    return 'provider-demo-001';
+  }
 }
 
 export default function WorklistPage() {
@@ -24,22 +27,38 @@ export default function WorklistPage() {
   const [claiming, setClaiming] = useState<string | null>(null);
 
   useEffect(() => {
-    const load = () =>
-      fetch('/api/cases?provider=true')
-        .then(r => r.json())
-        .then(data => Array.isArray(data) ? setCases(data) : null);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const r = await fetch('/api/cases?provider=true');
+        if (!r.ok) return;
+        const data = await r.json();
+        if (!cancelled && Array.isArray(data)) setCases(data);
+      } catch {
+        // network error or JSON parse failure — silently skip, retry next interval
+      }
+    }
+
     load();
     const interval = setInterval(load, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   async function claimCase(id: string) {
     setClaiming(id);
-    await fetch(`/api/cases/${id}/claim`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ providerId: getProviderId() }),
-    });
+    try {
+      await fetch(`/api/cases/${id}/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId: getProviderId() }),
+      });
+    } catch {
+      // ignore claim errors — still navigate
+    }
     router.push(`/case/${id}`);
   }
 
