@@ -5,11 +5,21 @@ import { runTriageAI } from '@/lib/claude';
 import { gatherNihContext } from '@/lib/nih';
 import type { IntakeFormState } from '@/lib/types';
 
+function buildFallbackSelfCare(intake: IntakeFormState): string {
+  return `Based on the information you've provided, your symptoms appear to be mild and self-manageable at home.
+
+For your ${intake.symptomType.toLowerCase()} affecting your ${intake.bodyLocation.toLowerCase()}, we recommend rest, staying hydrated, and monitoring your symptoms over the next 24–48 hours. Over-the-counter remedies appropriate for your condition may help with discomfort.
+
+Watch for any of the following and seek care if they occur: symptoms that worsen significantly, a fever above 38.5°C, new or spreading symptoms, or anything that feels unusual or alarming to you.
+
+This is triage navigation guidance, not a medical diagnosis. If your symptoms worsen or you have concerns, contact a healthcare provider.`;
+}
+
 export async function POST(req: NextRequest) {
   const { caseId, intake }: { caseId: string; intake: IntakeFormState } = await req.json();
 
   try {
-    // 1. Gather NIH context in parallel
+    // 1. Gather NIH context
     const medications = intake.medications.split(',').map(s => s.trim()).filter(Boolean);
     const { sources: nihSources, contextText: nihContextText } = await gatherNihContext({
       symptomDescription: intake.symptomDescription,
@@ -20,8 +30,15 @@ export async function POST(req: NextRequest) {
     // 2. Run Claude triage
     const result = await runTriageAI(intake, nihContextText, nihSources);
 
-    // 3. Determine next status
-    const isAutoResolved = result.tier === 0 && result.selfCareResponse;
+    // 3. Tier 0: use Claude's selfCareResponse or fall back to a generated one
+    //    Haiku sometimes returns null for selfCareResponse even on tier 0 — never
+    //    send a tier 0 case to the provider queue.
+    const selfCareText =
+      result.tier === 0
+        ? (result.selfCareResponse ?? buildFallbackSelfCare(intake))
+        : null;
+
+    const isAutoResolved = result.tier === 0;
     const nextStatus = isAutoResolved ? 'response_ready' : 'awaiting_review';
 
     // 4. Update case with AI results
@@ -36,12 +53,12 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', caseId);
 
-    // 5. For Tier 0: auto-create response from Claude's self-care text
-    if (isAutoResolved && result.selfCareResponse) {
+    // 5. For Tier 0: auto-create response
+    if (isAutoResolved && selfCareText) {
       await supabaseAdmin.from('responses').insert({
         case_id: caseId,
         outcome: 'self_manageable',
-        message: result.selfCareResponse,
+        message: selfCareText,
         nih_sources: nihSources,
       });
       await supabaseAdmin
