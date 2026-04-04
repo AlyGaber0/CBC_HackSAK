@@ -284,7 +284,8 @@ export default function DevNav() {
   const hasCase = !!state.lastCaseId;
 
   return (
-    <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 10000, fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>
+    // bottom: 80 places the DEV button above the DemoPanel button (bottom: 20, height ~40px)
+    <div style={{ position: 'fixed', bottom: 80, right: 16, zIndex: 10000, fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>
       {open && (
         <div style={{
           background: '#0f172a',
