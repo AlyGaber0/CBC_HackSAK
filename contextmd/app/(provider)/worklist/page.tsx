@@ -39,7 +39,7 @@ export default function WorklistPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ providerId: getProviderId() }),
     });
-    router.push(`/provider/case/${id}`);
+    router.push(`/case/${id}`);
   }
 
   const sorted = [...cases].sort((a, b) => {
@@ -141,7 +141,7 @@ export default function WorklistPage() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => router.push(`/provider/case/${c.id}`)}
+                    onClick={() => router.push(`/case/${c.id}`)}
                     style={{ padding: '7px 13px', background: 'transparent', color: '#0f2744', border: '1.5px solid #cbd5e1', borderRadius: 5, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
                   >
                     Open

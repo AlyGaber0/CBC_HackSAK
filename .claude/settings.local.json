@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"c:/Users/karim/OneDrive/Desktop/Personal/Personal Projects/Claude-Hackathon-Apr-1-2026---Bio---SAK/\"*.env*)",
+      "Bash(ls \"c:/Users/karim/OneDrive/Desktop/Personal/Personal Projects/Claude-Hackathon-Apr-1-2026---Bio---SAK/contextmd/\"*.env*)"
+    ]
+  }
+}
