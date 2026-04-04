@@ -105,7 +105,19 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
   // ── Response Ready — Q5: A single scrollable card ─────────────
   if (caseData.status === 'response_ready') {
     const response: Response | undefined = caseData.responses?.[0];
-    if (!response) return null;
+    // Response row not yet committed — keep polling
+    if (!response) {
+      return (
+        <StatusShell>
+          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '32px 24px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)', textAlign: 'center' }}>
+            <div style={{ width: 32, height: 32, border: '3px solid #e2e8f0', borderTopColor: '#0f2744', borderRadius: '50%', animation: 'spin 0.9s linear infinite', margin: '0 auto 18px' }} />
+            <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Preparing your response</h2>
+            <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Almost there — loading your care guidance.</p>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        </StatusShell>
+      );
+    }
 
     const cfg = OUTCOME_CONFIG[response.outcome];
     const nihs: NihSource[] = response.nih_sources ?? [];

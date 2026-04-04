@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
         outcome: 'self_manageable',
         message: result.selfCareResponse,
         nih_sources: nihSources,
-        responded_at: new Date().toISOString(),
       });
       await supabaseAdmin
         .from('cases')
