@@ -138,17 +138,35 @@ export default function IntakePage() {
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         const msg = (errBody as { error?: string }).error ?? `Server error ${res.status}`;
-        console.error('[intake submit]', res.status, msg);
         throw new Error(msg);
       }
 
       const caseData = await res.json();
 
-      // fire-and-forget triage
+      // fire-and-forget triage — pass caseId + full intake so the route can process symptoms
       fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ case_id: caseData.id }),
+        body: JSON.stringify({
+          caseId: caseData.id,
+          intake: {
+            bodyLocation: store.bodyLocation,
+            bodySubLocation: store.bodySubLocation,
+            symptomType: store.symptomType,
+            symptomDescription: store.symptomDescription,
+            timelineStart: store.timelineStart,
+            timelineChanged: store.timelineChanged,
+            painSeverity: store.painSeverity,
+            associatedSymptoms: store.associatedSymptoms,
+            photoCount: store.photoCount,
+            photoNames: store.photoNames,
+            freeText: store.freeText,
+            patientQuestions: store.patientQuestions,
+            medicalConditions: store.medicalConditions,
+            medications: store.medications,
+            allergies: store.allergies,
+          },
+        }),
       });
 
       store.reset();
