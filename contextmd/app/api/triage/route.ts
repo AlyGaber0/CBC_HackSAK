@@ -14,8 +14,16 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier0_sunburn: {
     tier: 0,
     navigationAction: 'self_care',
-    brief:
-      'Patient reports mild sunburn (pain 2/10) on shoulders from yesterday. Already improving with aloe vera. No blisters, no systemic symptoms. Classic Tier 0 - self-manageable.',
+    brief: {
+      chiefComplaint: 'Mild sunburn on shoulders, already improving.',
+      timeline: 'Occurred yesterday. Improving since.',
+      severity: 'Pain 2/10. No systemic symptoms.',
+      redFlags: [],
+      medicationFlags: [],
+      relevantHistory: 'No medications or allergies reported.',
+      patientQuestions: [],
+      nihContext: 'NIH/AAD guidelines support home management for minor sunburn.',
+    },
     tierReasoning:
       'Pain severity 2/10, symptoms improving, no red flags. NIH/AAD guidelines support home management for minor sunburn.',
     selfCareResponse:
@@ -26,8 +34,16 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier1_cold: {
     tier: 1,
     navigationAction: 'call_811',
-    brief:
-      'Patient reports 2-day history of runny nose, mild congestion, sore throat with fatigue and headache. Pain 2/10. Symptoms stable. No fever, no dyspnea. Consistent with viral upper respiratory infection.',
+    brief: {
+      chiefComplaint: 'Runny nose, mild congestion, sore throat, fatigue, and headache for 2 days.',
+      timeline: '2 days. Stable.',
+      severity: 'Pain 2/10. No fever, no dyspnea.',
+      redFlags: [],
+      medicationFlags: [],
+      relevantHistory: 'No medications or allergies reported.',
+      patientQuestions: [],
+      nihContext: 'Consistent with viral upper respiratory infection.',
+    },
     tierReasoning:
       'Low severity (2/10), symptoms stable at 2 days, no red-flag features. Warrants nurse triage via 811 for reassurance and OTC guidance rather than in-person visit.',
     selfCareResponse: null,
@@ -37,8 +53,18 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier2_backpain: {
     tier: 2,
     navigationAction: 'walkin_soon',
-    brief:
-      'Patient reports severe lower back pain (8/10) radiating down the left leg after lifting 3 days ago, progressively worsening, waking from sleep. On Lisinopril and Ibuprofen; allergic to Penicillin. Warning: Concurrent Lisinopril + Ibuprofen - NSAIDs can reduce antihypertensive effect and increase AKI risk.',
+    brief: {
+      chiefComplaint: 'Severe lower back pain radiating down the left leg after lifting, progressively worsening.',
+      timeline: '3 days. Progressive worsening, waking from sleep.',
+      severity: 'Pain 8/10. Radicular pattern, sleep disruption.',
+      redFlags: ['Progressive worsening', 'Radicular pattern', 'Sleep disruption'],
+      medicationFlags: [
+        'Lisinopril + Ibuprofen: NSAIDs can reduce antihypertensive effect and increase AKI risk. Consider acetaminophen instead.',
+      ],
+      relevantHistory: 'On Lisinopril and Ibuprofen. Allergic to Penicillin.',
+      patientQuestions: [],
+      nihContext: 'Features consistent with disc herniation. Same-day or next-day assessment recommended.',
+    },
     tierReasoning:
       'Pain 8/10, radicular pattern, progressive worsening, sleep disruption - features consistent with disc herniation requiring same-day or next-day assessment. Not Tier 3 as no bowel/bladder involvement reported.',
     selfCareResponse: null,
@@ -55,8 +81,18 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier2_cough_medflags: {
     tier: 2,
     navigationAction: 'walkin_soon',
-    brief:
-      'Patient on Lisinopril 10 mg reports 2-week persistent dry nocturnal cough with no phlegm. Warning: ACE inhibitor-induced cough affects ~10-15% of patients on Lisinopril - highly likely aetiology here.',
+    brief: {
+      chiefComplaint: 'Persistent dry nocturnal cough for 2 weeks. No phlegm.',
+      timeline: '2 weeks. Stable.',
+      severity: 'Mild severity. No pain.',
+      redFlags: [],
+      medicationFlags: [
+        'Lisinopril (ACE inhibitor): persistent dry cough affects 10-15% of patients. Likely drug-induced. Consider switching to an ARB.',
+      ],
+      relevantHistory: 'On Lisinopril 10 mg.',
+      patientQuestions: [],
+      nihContext: 'ACE inhibitor-induced cough is a well-documented class effect.',
+    },
     tierReasoning:
       'Stable symptom, no red flags, but 2-week duration and likely medication side-effect warrants physician review for potential switch to ARB.',
     selfCareResponse: null,
@@ -73,8 +109,16 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier3_urgent: {
     tier: 3,
     navigationAction: 'er_now',
-    brief:
-      'Diabetic patient reports rapidly spreading redness, swelling, and red streaks extending up the right leg from foot. Pain 9/10. Fever present. Onset yesterday, rapidly worsening. Warning: Red streaks (lymphangitis) + fever + diabetes = suspected necrotising fasciitis or severe cellulitis. EMERGENCY.',
+    brief: {
+      chiefComplaint: 'Rapidly spreading redness, swelling, and red streaks up the right leg from foot.',
+      timeline: 'Onset yesterday. Rapidly worsening.',
+      severity: 'Pain 9/10. Fever present.',
+      redFlags: ['Red streaks (lymphangitis)', 'Fever', 'Rapid progression <24h', 'Diabetic patient'],
+      medicationFlags: [],
+      relevantHistory: 'Diabetic patient.',
+      patientQuestions: [],
+      nihContext: 'Red streaks + fever + diabetes = suspected necrotising fasciitis or severe cellulitis. EMERGENCY.',
+    },
     tierReasoning:
       'Red streaks (lymphangitis), fever, rapid progression over <24 h in a diabetic patient are hallmarks of a limb-threatening or life-threatening soft-tissue infection. Immediate ED assessment required.',
     selfCareResponse: null,
@@ -84,8 +128,16 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier2_pharmacist: {
     tier: 2,
     navigationAction: 'see_pharmacist',
-    brief:
-      'Patient reports classic UTI symptoms: dysuria, urinary frequency, lower abdominal discomfort, 2-day duration, worsening. No fever, no flank pain. No medications or allergies listed. Self-reports prior UTI episodes.',
+    brief: {
+      chiefComplaint: 'Classic UTI symptoms: dysuria, urinary frequency, lower abdominal discomfort for 2 days.',
+      timeline: '2 days. Worsening.',
+      severity: 'Moderate. No fever, no flank pain.',
+      redFlags: [],
+      medicationFlags: [],
+      relevantHistory: 'No medications or allergies. Prior UTI episodes.',
+      patientQuestions: [],
+      nihContext: 'Uncomplicated UTI. Quebec pharmacists can prescribe under Bill 31.',
+    },
     tierReasoning:
       'Uncomplicated UTI in Quebec: pharmacists can prescribe nitrofurantoin or trimethoprim under Bill 31 (since 2023). No systemic symptoms suggesting pyelonephritis. Tier 2 - pharmacist is the appropriate first contact.',
     selfCareResponse: null,

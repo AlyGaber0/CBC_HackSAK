@@ -12,12 +12,12 @@ const OUTCOME_CONFIG: Record<TriageOutcome, { label: string; color: string; bg: 
 
 const NAV_CONFIG: Record<NavigationAction, { icon: React.JSX.Element; label: string; detail: string; color: string; bg: string; border: string }> = {
   stay_home:        { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Stay home & rest',         detail: 'Manage your symptoms at home with the self-care guidance below.',                                                    color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
-  call_811:         { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>, label: 'Call 811 (Info-Santé)',     detail: 'Speak with a registered nurse 24/7 for guidance. Free, confidential, available in English and French.',            color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-  see_pharmacist:   { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>, label: 'See your pharmacist',       detail: 'Quebec pharmacists can prescribe for this type of concern. Visit any pharmacy — no appointment needed.',           color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-  walk_in_soon:     { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2\u20135 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  call_811:         { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>, label: 'Call 811 (Info-Sante)',     detail: 'Speak with a registered nurse 24/7 for guidance. Free, confidential, available in English and French.',            color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+  see_pharmacist:   { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>, label: 'See your pharmacist',       detail: 'Quebec pharmacists can prescribe for this type of concern. Visit any pharmacy - no appointment needed.',           color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+  walk_in_soon:     { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2-5 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
   book_appointment: { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>, label: 'Book an appointment',       detail: 'Schedule a follow-up with your healthcare provider or request a specialist referral.',                             color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
   er_now:           { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>, label: 'Go to Emergency now',       detail: 'Your symptoms need same-day evaluation. Go to your nearest emergency department or call 911 if worsening rapidly.', color: '#991b1b', bg: '#fff1f2', border: '#fecaca' },
-  walkin_soon:      { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2\u20135 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  walkin_soon:      { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2-5 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
   self_care:        { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Stay home & rest',         detail: 'Manage your symptoms at home with the self-care guidance below.',                                                    color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
 };
 
@@ -25,8 +25,7 @@ const DISCLAIMER =
   'This response is for informational purposes only and does not replace professional medical advice. If your symptoms worsen or you have concerns, contact a healthcare provider.';
 
 // ---------------------------------------------------------------------------
-// Lightweight markdown renderer — handles **bold**, bullet lists, newlines.
-// No external library needed.
+// Lightweight markdown renderer - handles **bold**, bullet lists, newlines.
 // ---------------------------------------------------------------------------
 function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split('\n');
@@ -114,7 +113,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 16px' }}>
         <div style={{ maxWidth: 520, width: '100%', textAlign: 'center' }}>
           <Spinner size={32} />
-          <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 16 }}>Loading your case\u2026</p>
+          <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 16 }}>Loading your case...</p>
         </div>
       </div>
     );
@@ -127,7 +126,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
           <Spinner size={32} style={{ margin: '0 auto 18px' }} />
           <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Analysing your symptoms</h2>
           <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.65 }}>
-            Our AI is reviewing your intake and cross-referencing NIH clinical data. This takes about 15\u201330 seconds.
+            Our AI is reviewing your intake and cross-referencing NIH clinical data. This takes about 15-30 seconds.
           </p>
         </div>
       </StatusShell>
@@ -138,6 +137,8 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
     const inReview = effectiveStatus === 'in_review';
     const navAction = caseData?.navigation_action;
     const nav = navAction ? NAV_CONFIG[navAction as NavigationAction] : null;
+    const medFlags: string[] = caseData?.ai_brief?.medicationFlags ?? [];
+
     return (
       <StatusShell>
         {nav && (
@@ -151,6 +152,25 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
             </div>
           </div>
         )}
+
+        {medFlags.length > 0 && (
+          <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, padding: '16px 18px', marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#92400e', letterSpacing: '0.4px', textTransform: 'uppercase' }}>Medication Flag{medFlags.length > 1 ? 's' : ''}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {medFlags.map((flag, i) => (
+                <p key={i} style={{ margin: 0, fontSize: 13, color: '#78350f', lineHeight: 1.6 }}>{flag}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '24px 22px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 10px', marginBottom: 16 }}>
             <span style={{ width: 7, height: 7, background: '#22c55e', borderRadius: '50%', animation: 'pulse 1.5s ease-in-out infinite', display: 'inline-block' }} />
@@ -187,7 +207,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
           <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '32px 24px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)', textAlign: 'center' }}>
             <Spinner size={32} style={{ margin: '0 auto 18px' }} />
             <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Preparing your response</h2>
-            <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Almost there \u2014 loading your care guidance.</p>
+            <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Almost there - loading your care guidance.</p>
           </div>
         </StatusShell>
       );
@@ -240,7 +260,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                   {nihs.map((src, i) => (
                     <div key={i}>
                       <a href={src.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12.5, fontWeight: 600, color: '#1d4ed8', textDecoration: 'none', display: 'block', marginBottom: 2 }}>
-                        {src.title} \u2197
+                        {src.title} &#x2197;
                       </a>
                       <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', lineHeight: 1.55 }}>{src.excerpt}</p>
                     </div>
@@ -318,7 +338,7 @@ function EmergencyFooter() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
-        Call 911 \u2014 If this is an emergency
+        Call 911 - If this is an emergency
       </a>
       <p style={{ margin: '6px 0 0', textAlign: 'center', fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>
         If you believe you are in immediate danger, call 911 or go to your nearest emergency department.
