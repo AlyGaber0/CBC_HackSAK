@@ -3,10 +3,96 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { runTriageAI } from '@/lib/claude';
 import { gatherNihContext } from '@/lib/nih';
-import type { IntakeFormState } from '@/lib/types';
+import type { IntakeFormState, TriageAIResult } from '@/lib/types';
 
-// Tell Next.js/Vercel this route can run up to 60s (max on hobby plan)
 export const maxDuration = 60;
+
+// ---------------------------------------------------------------------------
+// HARDCODED DEMO RESULTS — bypasses Claude entirely when demoKey is present
+// ---------------------------------------------------------------------------
+const DEMO_RESULTS: Record<string, TriageAIResult> = {
+  tier0_sunburn: {
+    tier: 0,
+    navigationAction: 'self_care',
+    brief:
+      'Patient reports mild sunburn (pain 2/10) on shoulders from yesterday. Already improving with aloe vera. No blisters, no systemic symptoms. Classic Tier 0 — self-manageable.',
+    tierReasoning:
+      'Pain severity 2/10, symptoms improving, no red flags. NIH/AAD guidelines support home management for minor sunburn.',
+    selfCareResponse:
+      'Your sunburn sounds mild and is already improving — great sign!\n\n**What to do at home:**\n- Continue applying aloe vera gel or a fragrance-free moisturiser every few hours\n- Stay well-hydrated; sunburn draws fluid to the skin surface\n- Ibuprofen (400 mg every 6–8 h with food) or acetaminophen (500–1000 mg every 6 h) is safe and effective for sunburn discomfort\n- Avoid further sun exposure until fully healed; wear SPF 30+ going forward\n- Cool (not ice-cold) compresses can reduce heat and pain\n\n**Watch for and seek care if:**\n- Blistering develops over a large area\n- Fever above 38.5 °C, chills, or nausea\n- Severe pain not controlled by OTC medication\n\nThis is triage navigation guidance, not a medical diagnosis.',
+    medicationFlags: [],
+    nihSources: [],
+  },
+  tier1_cold: {
+    tier: 1,
+    navigationAction: 'call_811',
+    brief:
+      'Patient reports 2-day history of runny nose, mild congestion, sore throat with fatigue and headache. Pain 2/10. Symptoms stable. No fever, no dyspnea. Consistent with viral upper respiratory infection.',
+    tierReasoning:
+      'Low severity (2/10), symptoms stable at 2 days, no red-flag features. Warrants nurse triage via 811 for reassurance and OTC guidance rather than in-person visit.',
+    selfCareResponse: null,
+    medicationFlags: [],
+    nihSources: [],
+  },
+  tier2_backpain: {
+    tier: 2,
+    navigationAction: 'walkin_soon',
+    brief:
+      'Patient reports severe lower back pain (8/10) radiating down the left leg after lifting 3 days ago, progressively worsening, waking from sleep. On Lisinopril and Ibuprofen; allergic to Penicillin. ⚠️ Concurrent Lisinopril + Ibuprofen — NSAIDs can reduce antihypertensive effect and increase AKI risk.',
+    tierReasoning:
+      'Pain 8/10, radicular pattern, progressive worsening, sleep disruption — features consistent with disc herniation requiring same-day or next-day assessment. Not Tier 3 as no bowel/bladder involvement reported.',
+    selfCareResponse: null,
+    medicationFlags: [
+      {
+        flag: 'Lisinopril + Ibuprofen interaction',
+        severity: 'moderate',
+        detail:
+          'NSAIDs (ibuprofen) can antagonise ACE inhibitor antihypertensive effect and elevate AKI risk, especially with dehydration. Consider acetaminophen for pain instead.',
+      },
+    ],
+    nihSources: [],
+  },
+  tier2_cough_medflags: {
+    tier: 2,
+    navigationAction: 'walkin_soon',
+    brief:
+      'Patient on Lisinopril 10 mg reports 2-week persistent dry nocturnal cough with no phlegm. ⚠️ ACE inhibitor-induced cough affects ~10–15% of patients on Lisinopril — highly likely aetiology here.',
+    tierReasoning:
+      'Stable symptom, no red flags, but 2-week duration and likely medication side-effect warrants physician review for potential switch to ARB.',
+    selfCareResponse: null,
+    medicationFlags: [
+      {
+        flag: 'Lisinopril — ACE inhibitor cough',
+        severity: 'moderate',
+        detail:
+          'Persistent dry cough is a well-documented side effect of ACE inhibitors affecting 10–15% of patients. Consider switching to an ARB (e.g. candesartan) if cough confirmed as drug-induced.',
+      },
+    ],
+    nihSources: [],
+  },
+  tier3_urgent: {
+    tier: 3,
+    navigationAction: 'er_now',
+    brief:
+      'Diabetic patient reports rapidly spreading redness, swelling, and red streaks extending up the right leg from foot. Pain 9/10. Fever present. Onset yesterday, rapidly worsening. ⚠️ Red streaks (lymphangitis) + fever + diabetes = suspected necrotising fasciitis or severe cellulitis. EMERGENCY.',
+    tierReasoning:
+      'Red streaks (lymphangitis), fever, rapid progression over <24 h in a diabetic patient are hallmarks of a limb-threatening or life-threatening soft-tissue infection. Immediate ED assessment required.',
+    selfCareResponse: null,
+    medicationFlags: [],
+    nihSources: [],
+  },
+  tier2_pharmacist: {
+    tier: 2,
+    navigationAction: 'see_pharmacist',
+    brief:
+      'Patient reports classic UTI symptoms: dysuria, urinary frequency, lower abdominal discomfort, 2-day duration, worsening. No fever, no flank pain. No medications or allergies listed. Self-reports prior UTI episodes.',
+    tierReasoning:
+      'Uncomplicated UTI in Quebec: pharmacists can prescribe nitrofurantoin or trimethoprim under Bill 31 (since 2023). No systemic symptoms suggesting pyelonephritis. Tier 2 — pharmacist is the appropriate first contact.',
+    selfCareResponse: null,
+    medicationFlags: [],
+    nihSources: [],
+  },
+};
 
 function buildFallbackSelfCare(intake: IntakeFormState): string {
   return `Based on the information you've provided, your symptoms appear to be mild and self-manageable at home.
@@ -19,10 +105,51 @@ This is triage navigation guidance, not a medical diagnosis. If your symptoms wo
 }
 
 export async function POST(req: NextRequest) {
-  const { caseId, intake }: { caseId: string; intake: IntakeFormState } = await req.json();
+  const body = await req.json();
+  const { caseId, intake, demoKey }: { caseId: string; intake: IntakeFormState; demoKey?: string } = body;
 
   try {
-    // 1. Gather NIH context (cap at 8s so Claude always gets to run)
+    // ---------------------------------------------------------------------------
+    // DEMO SHORTCUT — skip Claude entirely
+    // ---------------------------------------------------------------------------
+    if (demoKey && DEMO_RESULTS[demoKey]) {
+      const result = DEMO_RESULTS[demoKey];
+      const isAutoResolved = result.tier === 0;
+      const nextStatus = isAutoResolved ? 'response_ready' : 'awaiting_review';
+      const selfCareText = isAutoResolved
+        ? (result.selfCareResponse ?? buildFallbackSelfCare(intake))
+        : null;
+
+      await supabaseAdmin
+        .from('cases')
+        .update({
+          tier: result.tier,
+          ai_brief: result.brief,
+          ai_tier_reasoning: result.tierReasoning,
+          navigation_action: result.navigationAction,
+          status: nextStatus,
+        })
+        .eq('id', caseId);
+
+      if (isAutoResolved && selfCareText) {
+        await supabaseAdmin.from('responses').insert({
+          case_id: caseId,
+          outcome: 'self_manageable',
+          message: selfCareText,
+          nih_sources: [],
+        });
+        await supabaseAdmin
+          .from('cases')
+          .update({ responded_at: new Date().toISOString() })
+          .eq('id', caseId);
+      }
+
+      return NextResponse.json({ success: true, tier: result.tier, status: nextStatus });
+    }
+
+    // ---------------------------------------------------------------------------
+    // REAL PATH — Claude + NIH
+    // ---------------------------------------------------------------------------
     const medications = intake.medications.split(',').map(s => s.trim()).filter(Boolean);
     const nihPromise = gatherNihContext({
       symptomDescription: intake.symptomDescription,
@@ -34,10 +161,8 @@ export async function POST(req: NextRequest) {
     );
     const { sources: nihSources, contextText: nihContextText } = await Promise.race([nihPromise, nihTimeout]);
 
-    // 2. Run Claude triage
     const result = await runTriageAI(intake, nihContextText, nihSources);
 
-    // 3. Tier 0: always auto-resolve — use Claude's text or fallback
     const selfCareText =
       result.tier === 0
         ? (result.selfCareResponse ?? buildFallbackSelfCare(intake))
@@ -46,7 +171,6 @@ export async function POST(req: NextRequest) {
     const isAutoResolved = result.tier === 0;
     const nextStatus = isAutoResolved ? 'response_ready' : 'awaiting_review';
 
-    // 4. Update case
     await supabaseAdmin
       .from('cases')
       .update({
@@ -58,7 +182,6 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', caseId);
 
-    // 5. Auto-create response for Tier 0
     if (isAutoResolved && selfCareText) {
       await supabaseAdmin.from('responses').insert({
         case_id: caseId,

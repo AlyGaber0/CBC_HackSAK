@@ -9,7 +9,7 @@ const daysAgo = (n: number) => {
   return d.toISOString().split('T')[0];
 };
 
-const TEST_CASES = {
+const TEST_CASES: Record<string, { label: string; description: string; intake: IntakeFormState }> = {
   tier0_sunburn: {
     label: 'Tier 0 — Mild Sunburn (Auto-Response)',
     description: 'Clearly benign, NIH-documented self-care. AI responds instantly — no queue.',
@@ -184,12 +184,13 @@ export default function DemoPanel() {
       const caseData = await caseRes.json();
       const caseId: string = caseData.id;
 
-      setStatusMsg('Running AI triage\u2026 (15\u201330s)');
+      // demoKey tells the triage route to use hardcoded results — no Claude call
+      setStatusMsg('Running triage\u2026');
 
       const triageRes = await fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId, intake }),
+        body: JSON.stringify({ caseId, intake, demoKey: key }),
       });
       const triageData = triageRes.ok ? await triageRes.json() : { status: 'awaiting_review' };
       const finalStatus: string = triageData.status ?? 'awaiting_review';
@@ -280,7 +281,6 @@ export default function DemoPanel() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Quick Demo Cases</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {/* Minimize */}
           <button
             onClick={() => setMinimized(true)}
             title="Minimize"
@@ -288,7 +288,6 @@ export default function DemoPanel() {
           >
             &#8212;
           </button>
-          {/* Close */}
           <button
             onClick={() => { setOpen(false); resetPanel(); }}
             title="Close"
