@@ -85,7 +85,7 @@ export default function EmergencyPage() {
             <span style={{ fontSize: 18 }}>→</span>
           </button>
           <button
-            onClick={() => router.push('/intake')}
+            onClick={() => router.push('/chat')}
             style={{ background: '#0f2744', color: 'white', border: 'none', borderRadius: 8, padding: '13px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <span>No, continue to symptom intake</span>
