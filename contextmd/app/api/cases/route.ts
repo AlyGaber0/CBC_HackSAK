@@ -30,12 +30,13 @@ export async function GET(req: NextRequest) {
 
 // POST /api/cases — create new case from intake
 export async function POST(req: NextRequest) {
-  const body: IntakeFormState & { patientId: string } = await req.json();
+  const body: IntakeFormState & { patientId: string; patientEmail?: string | null } = await req.json();
 
   const { data, error } = await supabaseAdmin
     .from('cases')
     .insert({
       patient_id: body.patientId,
+      patient_email: body.patientEmail || null,
       status: 'processing',
       body_location: body.bodyLocation,
       body_sub_location: body.bodySubLocation,
@@ -58,4 +59,16 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data, { status: 201 });
+}
+
+// DELETE /api/cases — wipe all cases and responses (dev use only)
+// Responses are deleted automatically via ON DELETE CASCADE on the FK
+export async function DELETE() {
+  const { error } = await supabaseAdmin
+    .from('cases')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ cleared: true });
 }

@@ -63,7 +63,12 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
   const router = useRouter();
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [outcome, setOutcome] = useState<TriageOutcome | ''>('');
-  const [message, setMessage] = useState('');
+  // SBAR fields
+  const [sbarSituation, setSbarSituation] = useState('');
+  const [sbarBackground, setSbarBackground] = useState('');
+  const [sbarAssessment, setSbarAssessment] = useState('');
+  const [sbarRecommendation, setSbarRecommendation] = useState('');
+  // Conditional fields
   const [followupDays, setFollowupDays] = useState('');
   const [watchFor, setWatchFor] = useState('');
   const [providerType, setProviderType] = useState('');
@@ -78,14 +83,18 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
   }, [id]);
 
   async function submitResponse() {
-    if (!outcome || !message.trim()) return;
+    // All 4 SBAR fields required
+    if (!outcome || !sbarSituation.trim() || !sbarBackground.trim() || !sbarAssessment.trim() || !sbarRecommendation.trim()) return;
     setSubmitting(true);
     await fetch(`/api/respond/${id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         outcome,
-        message,
+        sbar_situation: sbarSituation,
+        sbar_background: sbarBackground,
+        sbar_assessment: sbarAssessment,
+        sbar_recommendation: sbarRecommendation,
         followup_days: followupDays ? parseInt(followupDays) : null,
         watch_for: watchFor || null,
         provider_type: providerType || null,
@@ -93,7 +102,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
         urgency_note: urgencyNote || null,
       }),
     });
-    router.push('/provider/worklist');
+    router.push('/worklist');
   }
 
   if (!caseData) {
@@ -107,7 +116,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
   const brief = caseData.ai_brief;
   const tier = caseData.tier ?? 1;
   const tierCfg = TIER_CONFIG[tier] ?? TIER_CONFIG[1];
-  const canSubmit = outcome && message.trim() && !submitting;
+  const canSubmit = outcome && sbarSituation.trim() && sbarBackground.trim() && sbarAssessment.trim() && sbarRecommendation.trim() && !submitting;
 
   return (
     <div style={{ padding: '24px 24px 48px', maxWidth: 1280, margin: '0 auto', fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif' }}>
@@ -115,7 +124,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
       {/* Page header */}
       <div style={{ marginBottom: 20 }}>
         <button
-          onClick={() => router.push('/provider/worklist')}
+          onClick={() => router.push('/worklist')}
           style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 10, fontFamily: 'inherit' }}
         >
           ← Back to worklist
@@ -166,9 +175,16 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                   </div>
                 )}
                 {brief.medicationFlags.length > 0 && (
-                  <div>
-                    <span style={{ fontWeight: 600, color: '#a16207' }}>Medication flags: </span>
-                    <span style={{ color: '#92400e' }}>{brief.medicationFlags.join(', ')}</span>
+                  <div style={{ background: '#fffbeb', border: '1.5px solid #fbbf24', borderRadius: 6, padding: '10px 12px', marginTop: 6 }}>
+                    <span style={{ fontWeight: 700, color: '#92400e', display: 'block', marginBottom: 4, fontSize: 11, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                      <svg style={{ display: 'inline-block', verticalAlign: 'text-top', marginRight: 4 }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
+                      Medication Flags
+                    </span>
+                    <span style={{ color: '#92400e', fontWeight: 600, fontSize: 13 }}>{brief.medicationFlags.join(', ')}</span>
                   </div>
                 )}
                 <div>
@@ -186,7 +202,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           {/* Patient questions */}
           {(caseData.patient_questions?.length ?? 0) > 0 && (
             <Card style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
-              <SectionLabel>Patient's questions</SectionLabel>
+              <SectionLabel>Patient&apos;s questions</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {caseData.patient_questions.map((q, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: '#92400e', lineHeight: 1.5 }}>
@@ -200,7 +216,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
           {/* Patient description */}
           <Card>
-            <SectionLabel>Patient's description</SectionLabel>
+            <SectionLabel>Patient&apos;s description</SectionLabel>
             <p style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
               {caseData.free_text || <span style={{ color: '#94a3b8' }}>No description provided.</span>}
             </p>
@@ -335,19 +351,64 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
             </Card>
           )}
 
-          {/* Patient message */}
+          {/* SBAR Response */}
           <Card>
-            <SectionLabel>Response to patient</SectionLabel>
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 10px', lineHeight: 1.5 }}>
-              Write in plain language. Address their specific questions directly.
+            <SectionLabel>SBAR Response (all fields required)</SectionLabel>
+            <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 14px', lineHeight: 1.5 }}>
+              Use the SBAR framework for clinical clarity. Write in plain language for the patient.
             </p>
-            <Textarea
-              placeholder="Based on your description..."
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              rows={8}
-              className="resize-none"
-            />
+            
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
+                Situation — What is happening right now?
+              </label>
+              <Textarea
+                placeholder="e.g. You've described a persistent headache that started 3 days ago..."
+                value={sbarSituation}
+                onChange={e => setSbarSituation(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
+                Background — Relevant history and context
+              </label>
+              <Textarea
+                placeholder="e.g. You mentioned this is similar to tension headaches you've had before, but this one is lasting longer..."
+                value={sbarBackground}
+                onChange={e => setSbarBackground(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
+                Assessment — Your clinical impression
+              </label>
+              <Textarea
+                placeholder="e.g. Based on your description, this appears to be a tension-type headache without red flag features..."
+                value={sbarAssessment}
+                onChange={e => setSbarAssessment(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
+                Recommendation — What should the patient do?
+              </label>
+              <Textarea
+                placeholder="e.g. Try over-the-counter ibuprofen 400mg every 6 hours. Apply a warm compress to your neck and temples. If the headache worsens or you develop fever, vision changes, or neck stiffness, seek immediate care..."
+                value={sbarRecommendation}
+                onChange={e => setSbarRecommendation(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
           </Card>
 
           {/* Submit */}

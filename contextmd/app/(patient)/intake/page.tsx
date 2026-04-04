@@ -5,6 +5,7 @@ import { useIntakeStore } from '@/lib/store';
 import { checkAnyTier4 } from '@/lib/triage';
 
 const STEP_NAMES = [
+  'Contact Info',
   'Body Location',
   'Symptoms',
   'Timeline',
@@ -87,7 +88,7 @@ export default function IntakePage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   function goNext() {
-    if (step === 1 && checkAnyTier4([store.symptomDescription])) {
+    if (step === 2 && checkAnyTier4([store.symptomDescription])) {
       setShowTier4Modal(true);
       return;
     }
@@ -117,6 +118,7 @@ export default function IntakePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           patientId,
+          patientEmail: store.patientEmail || null,
           bodyLocation: store.bodyLocation,
           bodySubLocation: store.bodySubLocation,
           symptomType: store.symptomType,
@@ -208,8 +210,28 @@ export default function IntakePage() {
   // ── Step renderers ─────────────────────────────────────────────
   const renderStep = () => {
     switch (step) {
-      // Step 1 — Body Location
+      // Step 0 — Contact Info
       case 0:
+        return (
+          <div style={s.card}>
+            <label style={s.label} htmlFor="patientEmail">Email address <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional - for response notifications)</span></label>
+            <input
+              id="patientEmail"
+              type="email"
+              style={s.field}
+              value={store.patientEmail}
+              onChange={e => store.update({ patientEmail: e.target.value })}
+              placeholder="your.email@example.com"
+            />
+            <p style={{ fontSize: 11, color: '#64748b', margin: '8px 0 0', lineHeight: 1.5 }}>
+              We&apos;ll send you an email when your response is ready. You can also check your case status page anytime.
+            </p>
+            {navRow(true)}
+          </div>
+        );
+
+      // Step 1 — Body Location
+      case 1:
         return (
           <div style={s.card}>
             <label style={s.label} htmlFor="bodyLocation">Body region</label>
@@ -241,7 +263,7 @@ export default function IntakePage() {
         );
 
       // Step 2 — Symptoms
-      case 1:
+      case 2:
         return (
           <div style={s.card}>
             <label style={s.label} htmlFor="symptomType">Type of symptom</label>
@@ -269,7 +291,7 @@ export default function IntakePage() {
         );
 
       // Step 3 — Timeline
-      case 2:
+      case 3:
         return (
           <div style={s.card}>
             <label style={s.label} htmlFor="timelineStart">When did this start?</label>
@@ -298,7 +320,7 @@ export default function IntakePage() {
         );
 
       // Step 4 — Severity + Associated Symptoms
-      case 3: {
+      case 4: {
         const severity = store.painSeverity;
         const severityLabel = severity <= 2 ? 'None to minimal' : severity <= 4 ? 'Mild' : severity <= 6 ? 'Moderate' : severity <= 8 ? 'Severe' : 'Worst imaginable';
         return (
@@ -358,7 +380,7 @@ export default function IntakePage() {
       }
 
       // Step 5 — Photos (simulated)
-      case 4:
+      case 5:
         return (
           <div style={s.card}>
             <label style={s.label}>Photos <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional — up to 3)</span></label>
@@ -414,8 +436,8 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 6 — Free text
-      case 5:
+      // Step 6 — Free-text
+      case 6:
         return (
           <div style={s.card}>
             <label style={s.label} htmlFor="freeText">
@@ -423,7 +445,7 @@ export default function IntakePage() {
               <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span>
             </label>
             <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12, lineHeight: 1.6 }}>
-              Anything else you'd like the provider to know — context, what makes it better or worse, how it affects your daily life.
+              Anything else you&apos;d like the provider to know — context, what makes it better or worse, how it affects your daily life.
             </p>
             <textarea
               id="freeText"
@@ -436,8 +458,8 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 7 — Patient questions
-      case 6:
+      // Step 7 — Patient Questions
+      case 7:
         return (
           <div style={s.card}>
             <label style={s.label}>Specific questions for the provider <span style={{ fontWeight: 400, color: '#94a3b8' }}>(up to 3, optional)</span></label>
@@ -471,8 +493,8 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 8 — Medical history + Submit
-      case 7:
+      // Step 8 — Medical History + Submit
+      case 8:
         return (
           <div style={s.card}>
             <label style={s.label} htmlFor="medicalConditions">
@@ -578,7 +600,13 @@ export default function IntakePage() {
               boxShadow: '0 20px 60px rgba(15,39,68,0.3)',
             }}
           >
-            <div style={{ fontSize: 22, marginBottom: 12 }}>⚠️</div>
+            <div style={{ marginBottom: 12 }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
             <h3 style={{ margin: '0 0 10px', fontSize: 16, fontWeight: 700, color: '#1e293b' }}>
               Possible Emergency Detected
             </h3>

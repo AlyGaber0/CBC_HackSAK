@@ -11,6 +11,7 @@ interface IntakeStore extends IntakeFormState {
 }
 
 const initialState: IntakeFormState = {
+  patientEmail: '',
   bodyLocation: '',
   bodySubLocation: '',
   symptomType: '',

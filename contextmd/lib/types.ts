@@ -13,13 +13,23 @@ export type TriageOutcome =
   | 'book_appointment'
   | 'urgent';
 
+export type NavigationAction =
+  | 'stay_home'       // Tier 0 — self-care
+  | 'call_811'        // Non-emergency helpline (Quebec)
+  | 'see_pharmacist'  // Pharmacist prescribing (unique to Quebec)
+  | 'walk_in_soon'    // Walk-in clinic within days
+  | 'book_appointment'// Book a specialist/GP
+  | 'er_now';         // Emergency room immediately
+
 export type TimelineChange = 'better' | 'worse' | 'same';
 
 export interface Case {
   id: string;
   patient_id: string;
+  patient_email: string | null;
   status: CaseStatus;
   tier: number | null;
+  navigation_action: NavigationAction | null;
   body_location: string | null;
   body_sub_location: string | null;
   symptom_type: string | null;
@@ -35,6 +45,7 @@ export interface Case {
   allergies: string[];
   photo_count: number;
   photo_names: string[];
+  photo_storage_keys: string[];
   ai_brief: ClinicalBrief | null;
   ai_tier_reasoning: string | null;
   claimed_by: string | null;
@@ -67,6 +78,11 @@ export interface Response {
   timeframe: string | null;
   urgency_note: string | null;
   nih_sources: NihSource[];
+  // SBAR structured fields
+  sbar_situation: string | null;
+  sbar_background: string | null;
+  sbar_assessment: string | null;
+  sbar_recommendation: string | null;
   created_at: string;
 }
 
@@ -79,6 +95,8 @@ export interface NihSource {
 
 // Intake form state shape (Zustand)
 export interface IntakeFormState {
+  // Step 0 - Contact info
+  patientEmail: string;
   // Step 1 - Body location
   bodyLocation: string;
   bodySubLocation: string;
@@ -108,6 +126,7 @@ export interface TriageAIResult {
   brief: ClinicalBrief;
   tier: number;
   tierReasoning: string;
+  navigationAction: NavigationAction;
   selfCareResponse: string | null; // only for tier 0
   nihSources: NihSource[];
 }

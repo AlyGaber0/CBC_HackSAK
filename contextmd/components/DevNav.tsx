@@ -25,6 +25,7 @@ function daysAgo(n: number): string {
 }
 
 const TIER2_INTAKE: IntakeFormState = {
+  patientEmail: 'demo@example.com',
   bodyLocation: 'Back',
   bodySubLocation: 'Lower back',
   symptomType: 'Pain',
@@ -48,6 +49,7 @@ const TIER2_INTAKE: IntakeFormState = {
 };
 
 const TIER0_INTAKE: IntakeFormState = {
+  patientEmail: 'demo@example.com',
   bodyLocation: 'Skin / General',
   bodySubLocation: 'Shoulders',
   symptomType: 'Rash',
@@ -111,6 +113,7 @@ export default function DevNav() {
   const [patientId, setPatientId] = useState('');
   const [providerId, setProviderId] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     setState(loadState());
@@ -241,6 +244,29 @@ export default function DevNav() {
     log(true, `New patient ID: ${id.slice(0, 8)}…`);
   }
 
+  async function clearAllCases() {
+    if (!confirmClear) {
+      setConfirmClear(true);
+      setTimeout(() => setConfirmClear(false), 3000);
+      return;
+    }
+    setConfirmClear(false);
+    setBusy('clear');
+    try {
+      const res = await fetch('/api/cases', { method: 'DELETE' });
+      const body: { cleared?: boolean; error?: string } = await res.json();
+      if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+      LS.remove('triaje_dev_last_case_id');
+      LS.remove('triaje_dev_last_intake');
+      setState(prev => ({ ...prev, lastCaseId: '', lastIntake: null }));
+      log(true, 'All cases cleared');
+    } catch (e) {
+      log(false, `Clear failed: ${String(e)}`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   function clearLastCase() {
     LS.remove('triaje_dev_last_case_id');
     LS.remove('triaje_dev_last_intake');
@@ -258,7 +284,7 @@ export default function DevNav() {
   const hasCase = !!state.lastCaseId;
 
   return (
-    <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 9999, fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>
+    <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 10000, fontFamily: 'ui-monospace, monospace', fontSize: 11 }}>
       {open && (
         <div style={{
           background: '#0f172a',
@@ -342,6 +368,24 @@ export default function DevNav() {
                   color="#3b82f6"
                   onClick={submitResponse}
                 />
+                <button
+                  onClick={clearAllCases}
+                  disabled={busy === 'clear'}
+                  style={{
+                    background: confirmClear ? '#ef4444' : 'none',
+                    border: `1px solid #ef4444`,
+                    borderRadius: 5,
+                    color: confirmClear ? 'white' : '#ef4444',
+                    cursor: busy === 'clear' ? 'default' : 'pointer',
+                    fontFamily: 'ui-monospace, monospace',
+                    fontSize: 11,
+                    padding: '5px 8px',
+                    width: '100%',
+                    opacity: busy === 'clear' ? 0.5 : 1,
+                  }}
+                >
+                  {busy === 'clear' ? '…' : confirmClear ? 'Confirm? (3s)' : 'Clear all cases'}
+                </button>
               </div>
             </div>
 

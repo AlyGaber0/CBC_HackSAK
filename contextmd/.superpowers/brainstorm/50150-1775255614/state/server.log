@@ -10,3 +10,21 @@
 {"type":"screen-added","file":"/Users/aly/CBC_HackSAK/contextmd/.superpowers/brainstorm/50150-1775255614/content/final-design.html"}
 {"type":"screen-added","file":"/Users/aly/CBC_HackSAK/contextmd/.superpowers/brainstorm/50150-1775255614/content/final-polished.html"}
 {"type":"screen-added","file":"/Users/aly/CBC_HackSAK/contextmd/.superpowers/brainstorm/50150-1775255614/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}
+node:fs:2413
+    return binding.writeFileUtf8(
+                   ^
+
+Error: ENOSPC: no space left on device, open '/Users/aly/CBC_HackSAK/contextmd/.superpowers/brainstorm/50150-1775255614/state/server-stopped'
+    at Object.writeFileSync (node:fs:2413:20)
+    at shutdown (/Users/aly/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/server.cjs:305:8)
+    at Timeout._onTimeout (/Users/aly/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/server.cjs:322:59)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  errno: -28,
+  code: 'ENOSPC',
+  syscall: 'open',
+  path: '/Users/aly/CBC_HackSAK/contextmd/.superpowers/brainstorm/50150-1775255614/state/server-stopped'
+}
+
+Node.js v24.14.0

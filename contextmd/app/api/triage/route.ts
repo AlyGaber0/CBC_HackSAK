@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
         tier: result.tier,
         ai_brief: result.brief,
         ai_tier_reasoning: result.tierReasoning,
+        navigation_action: result.navigationAction,
         status: nextStatus,
       })
       .eq('id', caseId);
