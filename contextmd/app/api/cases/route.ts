@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
   }
 
   if (forProvider) {
-    // Exclude escalated (tier 4 auto-handled) and self-manageable (tier 0 auto-resolved)
-    query = query.in('status', ['awaiting_review', 'in_review']).not('tier', 'eq', 0);
+    // Status filter is sufficient: tier 0 → response_ready (never awaiting/in_review)
+    query = query.in('status', ['awaiting_review', 'in_review']);
   }
 
   const { data, error } = await query;
