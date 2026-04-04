@@ -17,10 +17,67 @@ const NAV_CONFIG: Record<NavigationAction, { icon: React.JSX.Element; label: str
   walk_in_soon:     { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2\u20135 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
   book_appointment: { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>, label: 'Book an appointment',       detail: 'Schedule a follow-up with your healthcare provider or request a specialist referral.',                             color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
   er_now:           { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>, label: 'Go to Emergency now',       detail: 'Your symptoms need same-day evaluation. Go to your nearest emergency department or call 911 if worsening rapidly.', color: '#991b1b', bg: '#fff1f2', border: '#fecaca' },
+  walkin_soon:      { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>, label: 'Visit a walk-in clinic',    detail: 'See a provider at a walk-in clinic or CLSC within the next 2\u20135 days. No referral needed.',                        color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  self_care:        { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, label: 'Stay home & rest',         detail: 'Manage your symptoms at home with the self-care guidance below.',                                                    color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
 };
 
 const DISCLAIMER =
   'This response is for informational purposes only and does not replace professional medical advice. If your symptoms worsen or you have concerns, contact a healthcare provider.';
+
+// ---------------------------------------------------------------------------
+// Lightweight markdown renderer — handles **bold**, bullet lists, newlines.
+// No external library needed.
+// ---------------------------------------------------------------------------
+function renderMarkdown(text: string): React.ReactNode[] {
+  const lines = text.split('\n');
+  const output: React.ReactNode[] = [];
+  let bulletBuffer: string[] = [];
+  let key = 0;
+
+  function flushBullets() {
+    if (bulletBuffer.length === 0) return;
+    output.push(
+      <ul key={key++} style={{ margin: '10px 0 10px 4px', paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {bulletBuffer.map((item, i) => (
+          <li key={i} style={{ fontSize: 14, color: '#1e293b', lineHeight: 1.7 }}>
+            {inlineBold(item)}
+          </li>
+        ))}
+      </ul>
+    );
+    bulletBuffer = [];
+  }
+
+  function inlineBold(line: string): React.ReactNode[] {
+    const parts = line.split(/(\*\*[^*]+\*\*)/);
+    return parts.map((part, i) =>
+      part.startsWith('**') && part.endsWith('**')
+        ? <strong key={i} style={{ fontWeight: 700, color: '#0f2744' }}>{part.slice(2, -2)}</strong>
+        : part
+    );
+  }
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) {
+      flushBullets();
+      output.push(<div key={key++} style={{ height: 8 }} />);
+      continue;
+    }
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      bulletBuffer.push(line.slice(2));
+      continue;
+    }
+    flushBullets();
+    output.push(
+      <p key={key++} style={{ margin: '0 0 10px', fontSize: 14, color: '#1e293b', lineHeight: 1.75 }}>
+        {inlineBold(line)}
+      </p>
+    );
+  }
+  flushBullets();
+  return output;
+}
 
 export default function StatusPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -115,7 +172,6 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
             <span>Updates automatically every 3s</span>
           </div>
         </div>
-        {/* 911 button even while waiting */}
         <EmergencyFooter />
         <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }`}</style>
       </StatusShell>
@@ -160,9 +216,9 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
               {response.sbar_recommendation && <SbarSection label="Recommendation" text={response.sbar_recommendation} bold />}
             </div>
           ) : (
-            <p style={{ margin: '0 0 20px', fontSize: 14, color: '#1e293b', lineHeight: 1.75 }}>
-              {response.message}
-            </p>
+            <div style={{ marginBottom: 20 }}>
+              {renderMarkdown(response.message ?? '')}
+            </div>
           )}
 
           {response.followup_days != null && <Detail label="Follow up in" value={`${response.followup_days} day${response.followup_days !== 1 ? 's' : ''}`} />}
@@ -199,9 +255,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
 
-        {/* ── Post-response actions ── */}
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {/* Submit another case */}
           <button
             onClick={() => router.push('/intake')}
             style={{
@@ -219,8 +273,6 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
             </svg>
             Submit another concern
           </button>
-
-          {/* Back to home */}
           <button
             onClick={() => router.push('/')}
             style={{
@@ -240,7 +292,6 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
           </button>
         </div>
 
-        {/* 911 emergency button */}
         <EmergencyFooter />
       </StatusShell>
     );
@@ -249,7 +300,6 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
   return null;
 }
 
-// ── Emergency footer (shown on all terminal states) ──────────────
 function EmergencyFooter() {
   return (
     <div style={{ marginTop: 14 }}>
@@ -268,7 +318,7 @@ function EmergencyFooter() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
-        Call 911 — If this is an emergency
+        Call 911 \u2014 If this is an emergency
       </a>
       <p style={{ margin: '6px 0 0', textAlign: 'center', fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>
         If you believe you are in immediate danger, call 911 or go to your nearest emergency department.
@@ -276,8 +326,6 @@ function EmergencyFooter() {
     </div>
   );
 }
-
-// ── Shared helpers ─────────────────────────────────────────────
 
 function Spinner({ size = 24, style = {} }: { size?: number; style?: React.CSSProperties }) {
   return (
