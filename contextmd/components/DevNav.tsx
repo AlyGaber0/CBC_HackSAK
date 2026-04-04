@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import type { IntakeFormState } from '@/lib/types';
+import { providerFetch } from '@/lib/providerFetch';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -202,9 +203,8 @@ export default function DevNav() {
     setBusy('claim');
     const pid = LS.get('triaje_provider_id') ?? 'provider-demo-001';
     try {
-      const res = await fetch(`/api/cases/${lastCaseId}/claim`, {
+      const res = await providerFetch(`/api/cases/${lastCaseId}/claim`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId: pid }),
       });
       const body: { id?: string; status?: string; error?: string } = await res.json();
@@ -222,9 +222,8 @@ export default function DevNav() {
     if (!lastCaseId) return;
     setBusy('respond');
     try {
-      const res = await fetch(`/api/respond/${lastCaseId}`, {
+      const res = await providerFetch(`/api/respond/${lastCaseId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(PRESET_RESPONSE),
       });
       const body: { id?: string; outcome?: string; error?: string } = await res.json();
@@ -253,7 +252,7 @@ export default function DevNav() {
     setConfirmClear(false);
     setBusy('clear');
     try {
-      const res = await fetch('/api/cases', { method: 'DELETE' });
+      const res = await providerFetch('/api/cases', { method: 'DELETE' });
       const body: { cleared?: boolean; error?: string } = await res.json();
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
       LS.remove('triaje_dev_last_case_id');
