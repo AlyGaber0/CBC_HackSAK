@@ -413,12 +413,12 @@ export default function ChatPage() {
               }}
               style={{ padding: '10px 16px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 18 }}
             >
-              ->
+              &rarr;
             </button>
           </div>
           {!q.required && (
             <button onClick={skip} style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 12, cursor: 'pointer', textAlign: 'left', padding: '2px 0' }}>
-              Skip this question ->
+              Skip this question &rarr;
             </button>
           )}
         </div>
@@ -473,10 +473,10 @@ export default function ChatPage() {
               onClick={() => submitAnswer(multiPicked.length ? multiPicked.join(', ') : '(none)', multiPicked)}
               style={{ padding: '9px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
             >
-              Done ->
+              Done &rarr;
             </button>
             <button onClick={skip} style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 12, cursor: 'pointer' }}>
-              Skip ->
+              Skip &rarr;
             </button>
           </div>
         </div>
@@ -500,7 +500,7 @@ export default function ChatPage() {
             onClick={() => submitAnswer(`${sliderValue} / 10`, sliderValue)}
             style={{ padding: '9px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13, alignSelf: 'flex-start' }}
           >
-            Confirm ->
+            Confirm &rarr;
           </button>
         </div>
       )
@@ -644,7 +644,7 @@ export default function ChatPage() {
                 marginBottom: 10,
               }}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit my case ->'}
+              {isSubmitting ? 'Submitting...' : 'Submit my case →'}
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
@@ -663,7 +663,7 @@ export default function ChatPage() {
                 onClick={submitSummaryNote}
                 style={{ padding: '9px 14px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 16 }}
               >
-                ->
+                &rarr;
               </button>
             </div>
           </>
@@ -672,7 +672,7 @@ export default function ChatPage() {
         {showBack && (
           <div style={{ marginTop: 8 }}>
             <button onClick={goBack} style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 12, cursor: 'pointer', padding: 0 }}>
-              <- Back
+              &larr; Back
             </button>
           </div>
         )}
