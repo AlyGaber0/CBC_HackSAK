@@ -104,7 +104,8 @@ ${nihContextText || 'No NIH data retrieved for this case.'}
 `;
 
   const response = await client.messages.create({
-    model: 'claude-haiku-3-5',
+    // claude-3-5-haiku-20241022 is the correct model ID for Claude 3.5 Haiku
+    model: 'claude-3-5-haiku-20241022',
     max_tokens: 1200,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userMessage }],

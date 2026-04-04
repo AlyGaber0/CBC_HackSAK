@@ -5,6 +5,9 @@ import { runTriageAI } from '@/lib/claude';
 import { gatherNihContext } from '@/lib/nih';
 import type { IntakeFormState } from '@/lib/types';
 
+// Tell Next.js/Vercel this route can run up to 60s (max on hobby plan)
+export const maxDuration = 60;
+
 function buildFallbackSelfCare(intake: IntakeFormState): string {
   return `Based on the information you've provided, your symptoms appear to be mild and self-manageable at home.
 
@@ -19,20 +22,22 @@ export async function POST(req: NextRequest) {
   const { caseId, intake }: { caseId: string; intake: IntakeFormState } = await req.json();
 
   try {
-    // 1. Gather NIH context
+    // 1. Gather NIH context (cap at 8s so Claude always gets to run)
     const medications = intake.medications.split(',').map(s => s.trim()).filter(Boolean);
-    const { sources: nihSources, contextText: nihContextText } = await gatherNihContext({
+    const nihPromise = gatherNihContext({
       symptomDescription: intake.symptomDescription,
       symptomType: intake.symptomType,
       medications,
     });
+    const nihTimeout = new Promise<{ sources: []; contextText: string }>((resolve) =>
+      setTimeout(() => resolve({ sources: [], contextText: '' }), 8000)
+    );
+    const { sources: nihSources, contextText: nihContextText } = await Promise.race([nihPromise, nihTimeout]);
 
     // 2. Run Claude triage
     const result = await runTriageAI(intake, nihContextText, nihSources);
 
-    // 3. Tier 0: use Claude's selfCareResponse or fall back to a generated one
-    //    Haiku sometimes returns null for selfCareResponse even on tier 0 — never
-    //    send a tier 0 case to the provider queue.
+    // 3. Tier 0: always auto-resolve — use Claude's text or fallback
     const selfCareText =
       result.tier === 0
         ? (result.selfCareResponse ?? buildFallbackSelfCare(intake))
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
     const isAutoResolved = result.tier === 0;
     const nextStatus = isAutoResolved ? 'response_ready' : 'awaiting_review';
 
-    // 4. Update case with AI results
+    // 4. Update case
     await supabaseAdmin
       .from('cases')
       .update({
@@ -53,7 +58,7 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', caseId);
 
-    // 5. For Tier 0: auto-create response
+    // 5. Auto-create response for Tier 0
     if (isAutoResolved && selfCareText) {
       await supabaseAdmin.from('responses').insert({
         case_id: caseId,
@@ -69,6 +74,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, tier: result.tier, status: nextStatus });
   } catch (err) {
+    console.error('[triage] error:', err);
     const msg = err instanceof Error ? err.message : 'AI processing failed';
     await supabaseAdmin
       .from('cases')
