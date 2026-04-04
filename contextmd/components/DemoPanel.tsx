@@ -158,8 +158,15 @@ export default function DemoPanel() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+
+  function resetPanel() {
+    setSubmitting(null);
+    setStatusMsg('');
+    setError(null);
+  }
 
   async function submitTestCase(key: string, intake: IntakeFormState) {
     setSubmitting(key);
@@ -187,9 +194,7 @@ export default function DemoPanel() {
       const triageData = triageRes.ok ? await triageRes.json() : { status: 'awaiting_review' };
       const finalStatus: string = triageData.status ?? 'awaiting_review';
 
-      // Reset panel state BEFORE navigating so it's clean when user comes back
-      setSubmitting(null);
-      setStatusMsg('');
+      resetPanel();
       router.push(`/status/${caseId}?status=${finalStatus}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -199,10 +204,11 @@ export default function DemoPanel() {
     }
   }
 
+  // Collapsed pill button
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => { setOpen(true); setMinimized(false); }}
         style={{
           position: 'fixed', bottom: 20, right: 20,
           background: '#3b82f6', color: 'white',
@@ -223,6 +229,45 @@ export default function DemoPanel() {
     );
   }
 
+  // Minimized bar
+  if (minimized) {
+    return (
+      <div style={{
+        position: 'fixed', bottom: 20, right: 20,
+        background: 'white', border: '1px solid #e2e8f0',
+        borderRadius: 8, padding: '10px 14px',
+        boxShadow: '0 4px 12px rgba(15,39,68,0.15)',
+        zIndex: 10001, fontFamily: 'Inter, sans-serif',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#0f2744' }}>Demo Panel</span>
+        {submitting && (
+          <div style={{
+            width: 14, height: 14, border: '2px solid #bae6fd',
+            borderTopColor: '#0369a1', borderRadius: '50%',
+            animation: 'demospin 0.8s linear infinite',
+          }} />
+        )}
+        <button
+          onClick={() => setMinimized(false)}
+          title="Expand"
+          style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 16, padding: '0 2px', lineHeight: 1 }}
+        >
+          &#9650;
+        </button>
+        <button
+          onClick={() => { setOpen(false); resetPanel(); }}
+          title="Close"
+          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 18, padding: '0 2px', lineHeight: 1 }}
+        >
+          &times;
+        </button>
+        <style>{`@keyframes demospin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Full panel
   return (
     <div style={{
       position: 'fixed', bottom: 20, right: 20,
@@ -234,15 +279,26 @@ export default function DemoPanel() {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Quick Demo Cases</h3>
-        <button
-          onClick={() => { setOpen(false); setSubmitting(null); setStatusMsg(''); setError(null); }}
-          style={{ background: 'none', border: 'none', fontSize: 20, color: '#94a3b8', cursor: 'pointer', padding: 4 }}
-        >
-          \u00d7
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {/* Minimize */}
+          <button
+            onClick={() => setMinimized(true)}
+            title="Minimize"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 18, padding: '2px 6px', lineHeight: 1 }}
+          >
+            &#8212;
+          </button>
+          {/* Close */}
+          <button
+            onClick={() => { setOpen(false); resetPanel(); }}
+            title="Close"
+            style={{ background: 'none', border: 'none', fontSize: 20, color: '#94a3b8', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}
+          >
+            &times;
+          </button>
+        </div>
       </div>
 
-      {/* Submitting status */}
       {submitting && (
         <div style={{
           background: '#f0f9ff', border: '1px solid #bae6fd',
@@ -259,7 +315,6 @@ export default function DemoPanel() {
         </div>
       )}
 
-      {/* Error state with dismiss */}
       {error && (
         <div style={{
           background: '#fff1f2', border: '1px solid #fecaca',
@@ -273,7 +328,7 @@ export default function DemoPanel() {
             onClick={() => setError(null)}
             style={{ background: 'none', border: 'none', color: '#991b1b', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
           >
-            \u00d7
+            &times;
           </button>
         </div>
       )}
