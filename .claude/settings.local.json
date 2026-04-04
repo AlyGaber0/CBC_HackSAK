@@ -1,9 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push:*)",
+      "Bash(ls \"c:/Users/karim/OneDrive/Desktop/Personal/Personal Projects/Claude-Hackathon-Apr-1-2026---Bio---SAK/\"*.env*)",
+      "Bash(ls \"c:/Users/karim/OneDrive/Desktop/Personal/Personal Projects/Claude-Hackathon-Apr-1-2026---Bio---SAK/contextmd/\"*.env*)",
+      "Bash(npm test:*)",
+      "Bash(npm run:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m 'test: add missing API route tests, fix coverage to 93%, fix jest config and triage payload:*)",
+      "Bash(git push:*)",
+      "Bash(git commit -m 'feat: add floating dev panel for page navigation and data seeding:*)",
+      "Bash(git commit -m 'fix: remove .not\\('\\\\''tier'\\\\'','\\\\''eq'\\\\'',0\\) from worklist query — NULL tiers were silently dropped:*)",
+      "Bash(git commit -m 'fix: remove spurious responded_at from responses insert, handle missing response row:*)",
+      "Bash(curl -s -X POST http://localhost:3000/api/cases -H 'Content-Type: application/json' -d '{\"patientId\":\"test-debug-001\",\"bodyLocation\":\"Back\",\"bodySubLocation\":\"Lower back\",\"symptomType\":\"Pain\",\"symptomDescription\":\"Severe lower back pain radiating down left leg\",\"timelineStart\":\"2026-03-31\",\"timelineChanged\":\"worse\",\"painSeverity\":8,\"associatedSymptoms\":[\"Fatigue\"],\"photoCount\":0,\"photoNames\":[],\"freeText\":\"Hard to walk\",\"patientQuestions\":[\"Is this serious?\",\"\",\"\"],\"medicalConditions\":\"Hypertension\",\"medications\":\"Lisinopril\",\"allergies\":\"Penicillin\"}')",
+      "Bash(curl -s \"http://localhost:3000/api/cases?provider=true\")",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('date-fns:', p.dependencies['date-fns']\\); console.log\\('lucide-react:', p.dependencies['lucide-react']\\);\")",
+      "Bash(node -e \"const { formatDistanceToNow } = require\\('date-fns'\\); console.log\\(formatDistanceToNow\\(new Date\\('2026-04-04T03:39:48.693202+00:00'\\), { addSuffix: true }\\)\\);\")",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\(typeof l.Camera\\);\")",
+      "Bash(curl -s \"http://localhost:3000/worklist\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/triage -H 'Content-Type: application/json' -d '{\"caseId\":\"ddbae6b8-1c1f-47b6-b77d-d56163b66d31\",\"intake\":{\"bodyLocation\":\"Back\",\"bodySubLocation\":\"Lower back\",\"symptomType\":\"Pain\",\"symptomDescription\":\"Severe lower back pain radiating down left leg\",\"timelineStart\":\"2026-03-31\",\"timelineChanged\":\"worse\",\"painSeverity\":8,\"associatedSymptoms\":[\"Fatigue\"],\"photoCount\":0,\"photoNames\":[],\"freeText\":\"Hard to walk\",\"patientQuestions\":[\"Is this serious?\",\"\",\"\"],\"medicalConditions\":\"Hypertension\",\"medications\":\"Lisinopril\",\"allergies\":\"Penicillin\"}}')",
+      "Bash(curl -s \"http://localhost:3000/api/cases/ddbae6b8-1c1f-47b6-b77d-d56163b66d31\")",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const c=JSON.parse\\(d\\); console.log\\('tier:', c.tier, 'status:', c.status, 'ai_brief:', c.ai_brief ? 'populated' : 'null'\\);\")",
+      "Bash(git commit -m 'fix: strip markdown code fences from Claude response before JSON.parse:*)",
+      "Read(//Users/aly/.claude/projects/-Users-aly-CBC-HackSAK/82a4ad59-6a8f-4cac-bfba-7b1ed15d7a16/subagents/**)"
     ]
   }
 }

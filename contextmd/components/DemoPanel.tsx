@@ -9,7 +9,7 @@ const daysAgo = (n: number) => {
   return d.toISOString().split('T')[0];
 };
 
-const TEST_CASES = {
+const TEST_CASES: Record<string, { label: string; description: string; intake: IntakeFormState }> = {
   tier0_sunburn: {
     label: 'Tier 0 — Mild Sunburn (Auto-Response)',
     description: 'Clearly benign, NIH-documented self-care. AI responds instantly — no queue.',
@@ -144,7 +144,6 @@ const TEST_CASES = {
   },
 };
 
-// Ensure patient ID exists in localStorage
 function getOrCreatePatientId(): string {
   if (typeof window === 'undefined') return 'demo-patient';
   let id = localStorage.getItem('contextmd_patient_id');
@@ -159,15 +158,23 @@ export default function DemoPanel() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
+  function resetPanel() {
+    setSubmitting(null);
+    setStatusMsg('');
+    setError(null);
+  }
 
   async function submitTestCase(key: string, intake: IntakeFormState) {
     setSubmitting(key);
-    setStatusMsg('Creating case…');
+    setStatusMsg('Creating case\u2026');
+    setError(null);
     try {
       const patientId = getOrCreatePatientId();
 
-      // Step 1: create the case
       const caseRes = await fetch('/api/cases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,30 +184,32 @@ export default function DemoPanel() {
       const caseData = await caseRes.json();
       const caseId: string = caseData.id;
 
-      setStatusMsg('Running AI triage… (15–30s)');
+      // demoKey tells the triage route to use hardcoded results — no Claude call
+      setStatusMsg('Running triage\u2026');
 
-      // Step 2: await triage so we know the final status before navigating
       const triageRes = await fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId, intake }),
+        body: JSON.stringify({ caseId, intake, demoKey: key }),
       });
       const triageData = triageRes.ok ? await triageRes.json() : { status: 'awaiting_review' };
-
-      // Step 3: navigate — pass final status so the status page renders immediately
       const finalStatus: string = triageData.status ?? 'awaiting_review';
+
+      resetPanel();
       router.push(`/status/${caseId}?status=${finalStatus}`);
     } catch (err) {
-      alert('Demo error: ' + (err instanceof Error ? err.message : String(err)));
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg);
       setSubmitting(null);
       setStatusMsg('');
     }
   }
 
+  // Collapsed pill button
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => { setOpen(true); setMinimized(false); }}
         style={{
           position: 'fixed', bottom: 20, right: 20,
           background: '#3b82f6', color: 'white',
@@ -221,6 +230,45 @@ export default function DemoPanel() {
     );
   }
 
+  // Minimized bar
+  if (minimized) {
+    return (
+      <div style={{
+        position: 'fixed', bottom: 20, right: 20,
+        background: 'white', border: '1px solid #e2e8f0',
+        borderRadius: 8, padding: '10px 14px',
+        boxShadow: '0 4px 12px rgba(15,39,68,0.15)',
+        zIndex: 10001, fontFamily: 'Inter, sans-serif',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#0f2744' }}>Demo Panel</span>
+        {submitting && (
+          <div style={{
+            width: 14, height: 14, border: '2px solid #bae6fd',
+            borderTopColor: '#0369a1', borderRadius: '50%',
+            animation: 'demospin 0.8s linear infinite',
+          }} />
+        )}
+        <button
+          onClick={() => setMinimized(false)}
+          title="Expand"
+          style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 16, padding: '0 2px', lineHeight: 1 }}
+        >
+          &#9650;
+        </button>
+        <button
+          onClick={() => { setOpen(false); resetPanel(); }}
+          title="Close"
+          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 18, padding: '0 2px', lineHeight: 1 }}
+        >
+          &times;
+        </button>
+        <style>{`@keyframes demospin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Full panel
   return (
     <div style={{
       position: 'fixed', bottom: 20, right: 20,
@@ -232,13 +280,24 @@ export default function DemoPanel() {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Quick Demo Cases</h3>
-        <button onClick={() => setOpen(false)}
-          style={{ background: 'none', border: 'none', fontSize: 20, color: '#94a3b8', cursor: 'pointer', padding: 4 }}>
-          ×
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button
+            onClick={() => setMinimized(true)}
+            title="Minimize"
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 18, padding: '2px 6px', lineHeight: 1 }}
+          >
+            &#8212;
+          </button>
+          <button
+            onClick={() => { setOpen(false); resetPanel(); }}
+            title="Close"
+            style={{ background: 'none', border: 'none', fontSize: 20, color: '#94a3b8', cursor: 'pointer', padding: '2px 4px', lineHeight: 1 }}
+          >
+            &times;
+          </button>
+        </div>
       </div>
 
-      {/* Submitting overlay */}
       {submitting && (
         <div style={{
           background: '#f0f9ff', border: '1px solid #bae6fd',
@@ -255,8 +314,26 @@ export default function DemoPanel() {
         </div>
       )}
 
+      {error && (
+        <div style={{
+          background: '#fff1f2', border: '1px solid #fecaca',
+          borderRadius: 8, padding: '12px 14px', marginBottom: 16,
+          display: 'flex', alignItems: 'flex-start', gap: 10,
+        }}>
+          <span style={{ fontSize: 12.5, color: '#991b1b', flex: 1, lineHeight: 1.5 }}>
+            <strong>Error:</strong> {error}
+          </span>
+          <button
+            onClick={() => setError(null)}
+            style={{ background: 'none', border: 'none', color: '#991b1b', cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1 }}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 16px', lineHeight: 1.6 }}>
-        Submit pre-filled test cases to demo all features. Tier 0 resolves instantly; Tier 1–3 goes to the provider queue.
+        Submit pre-filled test cases to demo all features. Tier 0 resolves instantly; Tier 1\u20133 goes to the provider queue.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -265,6 +342,7 @@ export default function DemoPanel() {
             background: '#f8fafc', border: '1px solid #e2e8f0',
             borderRadius: 8, padding: '14px 16px',
             opacity: submitting && submitting !== key ? 0.5 : 1,
+            transition: 'opacity 0.2s',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
               <div style={{ flex: 1, marginRight: 12 }}>
@@ -284,9 +362,10 @@ export default function DemoPanel() {
                   padding: '7px 12px', fontSize: 11.5, fontWeight: 600,
                   cursor: submitting ? 'not-allowed' : 'pointer',
                   whiteSpace: 'nowrap', fontFamily: 'inherit',
+                  transition: 'background 0.2s',
                 }}
               >
-                {submitting === key ? 'Running…' : 'Submit'}
+                {submitting === key ? 'Running\u2026' : 'Submit'}
               </button>
             </div>
           </div>
@@ -295,7 +374,7 @@ export default function DemoPanel() {
 
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
         <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
-          <strong>Tip:</strong> Open <code>/worklist</code> in another tab to see the provider view. Submit a Tier 1–3 case, then claim and respond from the worklist.
+          <strong>Tip:</strong> Open <code>/worklist</code> in another tab to see the provider view.
         </p>
       </div>
     </div>
