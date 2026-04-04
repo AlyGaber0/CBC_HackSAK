@@ -13,7 +13,7 @@ export const maxDuration = 60;
 const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier0_sunburn: {
     tier: 0,
-    navigationAction: 'self_care',
+    navigationAction: 'stay_home',
     brief: {
       chiefComplaint: 'Mild sunburn on shoulders, already improving.',
       timeline: 'Occurred yesterday. Improving since.',
@@ -27,7 +27,7 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
     tierReasoning:
       'Pain severity 2/10, symptoms improving, no red flags. NIH/AAD guidelines support home management for minor sunburn.',
     selfCareResponse:
-      'Your sunburn sounds mild and is already improving - great sign!\n\n**What to do at home:**\n- Continue applying aloe vera gel or a fragrance-free moisturiser every few hours\n- Stay well-hydrated; sunburn draws fluid to the skin surface\n- Ibuprofen (400 mg every 6-8 h with food) or acetaminophen (500-1000 mg every 6 h) is safe and effective for sunburn discomfort\n- Avoid further sun exposure until fully healed; wear SPF 30+ going forward\n- Cool (not ice-cold) compresses can reduce heat and pain\n\n**Watch for and seek care if:**\n- Blistering develops over a large area\n- Fever above 38.5 °C, chills, or nausea\n- Severe pain not controlled by OTC medication\n\nThis is triage navigation guidance, not a medical diagnosis.',
+      'Your sunburn sounds mild and is already improving - great sign!\n\n**What to do at home:**\n- Continue applying aloe vera gel or a fragrance-free moisturiser every few hours\n- Stay well-hydrated; sunburn draws fluid to the skin surface\n- Ibuprofen (400 mg every 6-8 h with food) or acetaminophen (500-1000 mg every 6 h) is safe and effective for sunburn discomfort\n- Avoid further sun exposure until fully healed; wear SPF 30+ going forward\n- Cool (not ice-cold) compresses can reduce heat and pain\n\n**Watch for and seek care if:**\n- Blistering develops over a large area\n- Fever above 38.5 C, chills, or nausea\n- Severe pain not controlled by OTC medication\n\nThis is triage navigation guidance, not a medical diagnosis.',
     medicationFlags: [],
     nihSources: [],
   },
@@ -52,7 +52,7 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   },
   tier2_backpain: {
     tier: 2,
-    navigationAction: 'walkin_soon',
+    navigationAction: 'walk_in_soon',
     brief: {
       chiefComplaint: 'Severe lower back pain radiating down the left leg after lifting, progressively worsening.',
       timeline: '3 days. Progressive worsening, waking from sleep.',
@@ -80,7 +80,7 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
   },
   tier2_cough_medflags: {
     tier: 2,
-    navigationAction: 'walkin_soon',
+    navigationAction: 'walk_in_soon',
     brief: {
       chiefComplaint: 'Persistent dry nocturnal cough for 2 weeks. No phlegm.',
       timeline: '2 weeks. Stable.',
@@ -202,7 +202,10 @@ export async function POST(req: NextRequest) {
     // ---------------------------------------------------------------------------
     // REAL PATH - Claude + NIH
     // ---------------------------------------------------------------------------
-    const medications = intake.medications.split(',').map(s => s.trim()).filter(Boolean);
+    const medications = Array.isArray(intake.medications)
+      ? (intake.medications as string[])
+      : (intake.medications as string).split(',').map((s: string) => s.trim()).filter(Boolean);
+
     const nihPromise = gatherNihContext({
       symptomDescription: intake.symptomDescription,
       symptomType: intake.symptomType,

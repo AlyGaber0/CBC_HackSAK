@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkTier4 } from '@/lib/triage'
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// --- Types ---
 
 interface ChatMessage {
   id: string
@@ -24,7 +24,7 @@ interface QuestionDef {
   placeholder?: string
 }
 
-// ─── Questions ───────────────────────────────────────────────────────────────
+// --- Questions ---
 
 const BODY_LOCATIONS = ['Head / Neck', 'Chest', 'Abdomen', 'Back', 'Arms / Hands', 'Legs / Feet', 'Skin / General']
 const SYMPTOM_TYPES = ['Pain', 'Swelling', 'Rash', 'Discharge', 'Fatigue', 'Other']
@@ -32,28 +32,28 @@ const TIMELINE_OPTIONS = ['Getting worse', 'About the same', 'Getting better']
 const ASSOC_SYMPTOMS = ['Fever', 'Nausea', 'Fatigue', 'Headache', 'Shortness of breath', 'Dizziness', 'Vomiting', 'Loss of appetite']
 
 const QUESTIONS: QuestionDef[] = [
-  { key: 'patientEmail', botMessage: "What's your email? I can notify you when your case has a response. (Optional — press → to skip)", mode: 'text', required: false, placeholder: 'your.email@example.com' },
+  { key: 'patientEmail', botMessage: "What's your email? I can notify you when your case has a response. (Optional - press skip to continue)", mode: 'text', required: false, placeholder: 'your.email@example.com' },
   { key: 'bodyLocation', botMessage: 'Where in your body are you experiencing symptoms?', mode: 'select', options: BODY_LOCATIONS, required: true },
-  { key: 'bodySubLocation', botMessage: 'Can you be more specific about the location? (Optional)', mode: 'text', required: false, placeholder: 'e.g. left shoulder, lower back, inner knee…' },
+  { key: 'bodySubLocation', botMessage: 'Can you be more specific about the location? (Optional)', mode: 'text', required: false, placeholder: 'e.g. left shoulder, lower back, inner knee' },
   { key: 'symptomType', botMessage: 'What type of symptom are you experiencing?', mode: 'select', options: SYMPTOM_TYPES, required: true },
-  { key: 'symptomDescription', botMessage: 'Describe your symptom in detail — what it feels like, and what makes it better or worse.', mode: 'text', required: true, tier4Check: true, placeholder: 'e.g. Sharp pain on the right side that worsens when I breathe in…' },
-  { key: 'timelineStart', botMessage: 'When did this symptom first start?', mode: 'text', required: true, placeholder: 'e.g. Two days ago, started last Monday, on and off for a week…' },
+  { key: 'symptomDescription', botMessage: 'Describe your symptom in detail - what it feels like, and what makes it better or worse.', mode: 'text', required: true, tier4Check: true, placeholder: 'e.g. Sharp pain on the right side that worsens when I breathe in' },
+  { key: 'timelineStart', botMessage: 'When did this symptom first start?', mode: 'text', required: true, placeholder: 'e.g. Two days ago, started last Monday, on and off for a week' },
   { key: 'timelineChanged', botMessage: 'Since it started, how has it been changing?', mode: 'select', options: TIMELINE_OPTIONS, required: true },
   { key: 'painSeverity', botMessage: 'On a scale of 0 to 10, how would you rate your discomfort right now?', mode: 'slider', required: true },
   { key: 'associatedSymptoms', botMessage: 'Are you also experiencing any of these? Select all that apply. (Optional)', mode: 'multiselect', options: ASSOC_SYMPTOMS, required: false },
-  { key: 'freeText', botMessage: "Is there anything else you'd like the provider to know? (Optional)", mode: 'text', required: false, placeholder: 'Any additional context\u2026' },
+  { key: 'freeText', botMessage: "Is there anything else you'd like the provider to know? (Optional)", mode: 'text', required: false, placeholder: 'Any additional context about your symptoms' },
   { key: 'q1', botMessage: 'Any specific questions for the provider? First question: (Optional)', mode: 'text', required: false, placeholder: 'e.g. Should I see a specialist?' },
   { key: 'q2', botMessage: 'Second question for the provider: (Optional)', mode: 'text', required: false, placeholder: 'e.g. Can I manage this at home?' },
-  { key: 'medicalConditions', botMessage: 'Do you have any existing medical conditions? (Optional)', mode: 'text', required: false, placeholder: 'e.g. Diabetes, Hypertension, Asthma…' },
-  { key: 'medications', botMessage: 'Are you taking any current medications? (Optional)', mode: 'text', required: false, placeholder: 'e.g. Metformin 500mg, Lisinopril 10mg…' },
-  { key: 'allergies', botMessage: 'Any known allergies? (Optional)', mode: 'text', required: false, placeholder: 'e.g. Penicillin, Sulfa drugs, Shellfish…' },
+  { key: 'medicalConditions', botMessage: 'Do you have any existing medical conditions? (Optional)', mode: 'text', required: false, placeholder: 'e.g. Diabetes, Hypertension, Asthma' },
+  { key: 'medications', botMessage: 'Are you taking any current medications? (Optional)', mode: 'text', required: false, placeholder: 'e.g. Metformin 500mg, Lisinopril 10mg' },
+  { key: 'allergies', botMessage: 'Any known allergies? (Optional)', mode: 'text', required: false, placeholder: 'e.g. Penicillin, Sulfa drugs, Shellfish' },
 ]
 
 const TOTAL = QUESTIONS.length
 
 const DISCLAIMER = 'Triaje does not provide medical diagnosis or treatment. Responses are for informational purposes only. In a life-threatening emergency, always call 911.'
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers ---
 
 function uid() {
   return Math.random().toString(36).slice(2)
@@ -75,38 +75,38 @@ function toTimelineValue(display: string): string {
 }
 
 // Patterns that signal a clearly off-topic personal statement
-const OFF_TOPIC_RE = /^(i am |im |i'm |i love |i hate |i like |my name |hi |hello |hey |lol|haha|test|asdf|😊|🙏)/i
+const OFF_TOPIC_RE = /^(i am |im |i'm |i love |i hate |i like |my name |hi |hello |hey |lol|haha|test|asdf|youre |you're |you are |your |gay |stupid |dumb |😊|🙏)/i
 
 function getValidationError(q: QuestionDef, value: string): string | null {
-  // Select / multiselect / slider: user can only pick valid options — always fine
+  // Select / multiselect / slider: user can only pick valid options - always fine
   if (q.mode === 'select' || q.mode === 'multiselect' || q.mode === 'slider') return null
 
   const trimmed = value.trim()
 
   // Required empty check
   if (q.required && !trimmed) {
-    return "I need this to properly assess your case — could you fill that in for me?"
+    return "I need this to properly assess your case - could you fill that in for me?"
   }
 
-  // Nothing typed for optional field → fine
+  // Nothing typed for optional field - fine
   if (!trimmed) return null
 
   // Email format
   if (q.key === 'patientEmail') {
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRe.test(trimmed)) {
-      return "That doesn't look like a valid email address. Could you double-check it? Or press → to skip."
+      return "That doesn't look like a valid email address. Could you double-check it? Or press skip to continue."
     }
   }
 
   // Symptom description needs meaningful detail
   if (q.key === 'symptomDescription' && trimmed.length < 8) {
-    return "A bit more detail would really help the provider. Could you describe it further — what it feels like, where exactly, when it happens?"
+    return "A bit more detail would really help the provider. Could you describe it further - what it feels like, where exactly, when it happens?"
   }
 
   // Timeline: must be at least a short description, not a social statement
   if (q.key === 'timelineStart') {
-    if (trimmed.length < 3) return "Please describe when your symptom started — even an approximate like 'two days ago' is fine."
+    if (trimmed.length < 3) return "Please describe when your symptom started - even an approximate like 'two days ago' is fine."
     if (OFF_TOPIC_RE.test(trimmed)) return "Please describe when your symptom started, e.g. 'two days ago' or 'last Monday'."
   }
 
@@ -116,7 +116,7 @@ function getValidationError(q: QuestionDef, value: string): string | null {
     const startsAsQuestion = /^(should|can|will|would|is|are|how|what|when|why|does|do|could|may|might|am)\b/.test(lower)
     const hasQuestionMark = trimmed.includes('?')
     if (!startsAsQuestion && !hasQuestionMark) {
-      return "Please phrase this as a question for your provider — e.g. 'Should I see a specialist?' Press → to skip if you don't have one."
+      return "Please phrase this as a question for your provider - e.g. 'Should I see a specialist?' Press skip if you don't have one."
     }
     if (trimmed.length < 5) {
       return "Could you be a bit more specific with your question for the provider?"
@@ -126,7 +126,7 @@ function getValidationError(q: QuestionDef, value: string): string | null {
   // Free text must be relevant additional medical context
   if (q.key === 'freeText') {
     if (OFF_TOPIC_RE.test(trimmed)) {
-      return "This field is for additional medical context about your symptoms. Please keep responses relevant to your health situation, or press → to skip."
+      return "This field is for additional medical context about your symptoms. Please keep responses relevant to your health situation, or press skip."
     }
     if (trimmed.length < 10) {
       return "Could you elaborate a bit more? A sentence or two helps the provider understand your situation."
@@ -139,14 +139,14 @@ function getValidationError(q: QuestionDef, value: string): string | null {
       const hint = q.key === 'medicalConditions' ? 'medical conditions (e.g. Diabetes, Asthma)'
         : q.key === 'medications' ? 'medications (e.g. Metformin 500mg)'
         : 'allergies (e.g. Penicillin, Shellfish)'
-      return `Please enter your ${hint}, or press → to skip.`
+      return `Please enter your ${hint}, or press skip.`
     }
   }
 
   return null
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// --- Component ---
 
 type Answers = Record<string, string | string[] | number>
 
@@ -158,13 +158,15 @@ const INITIAL_ANSWERS: Answers = {
   medicalConditions: '', medications: '', allergies: '',
 }
 
+const SKIP_WORDS = new Set(['no', 'nothing', 'none', 'nope', 'nah', 'n/a', 'na'])
+
 export default function ChatPage() {
   const router = useRouter()
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [messages, setMessages] = useState<ChatMessage[]>([
-    bot("Hi! I'm going to ask you a few questions about your symptoms so we can connect you with the right care. Take your time — there's no rush."),
+    bot("Hi! I'm going to ask you a few questions about your symptoms so we can connect you with the right care. Take your time - there's no rush."),
   ])
   const [currentStep, setCurrentStep] = useState(-1)
   const [answers, setAnswers] = useState<Answers>(INITIAL_ANSWERS)
@@ -201,7 +203,7 @@ export default function ChatPage() {
 
   const q = currentStep >= 0 && currentStep < TOTAL ? QUESTIONS[currentStep] : null
 
-  // ─── Step logic ──────────────────────────────────────────────────────────
+  // --- Step logic ---
 
   function advanceTo(nextStep: number, nextAnswers: Answers) {
     setIsTyping(true)
@@ -227,10 +229,19 @@ export default function ChatPage() {
   function submitAnswer(displayValue: string, storedValue: string | string[] | number) {
     if (!q) return
 
+    // Skip-word detection for optional fields
+    if (!q.required && typeof storedValue === 'string') {
+      const lower = storedValue.trim().toLowerCase()
+      if (SKIP_WORDS.has(lower)) {
+        skip()
+        return
+      }
+    }
+
     // Show the user's message in chat immediately
     if (displayValue) setMessages(prev => [...prev, usr(displayValue)])
 
-    // Validate — if invalid, bot replies with rejection (conversational)
+    // Validate - if invalid, bot replies with rejection
     const valError = getValidationError(q, typeof storedValue === 'string' ? storedValue : String(storedValue))
     if (valError) {
       setIsTyping(true)
@@ -264,7 +275,6 @@ export default function ChatPage() {
     if (isTyping) return
 
     if (inSummary) {
-      // Back from summary re-opens last question (currentStep stays at TOTAL-1)
       setInSummary(false)
       setMessages(prev => prev.slice(0, -2))
       if (q) restoreInputFor(q)
@@ -309,7 +319,18 @@ export default function ChatPage() {
   async function submitCase() {
     setIsSubmitting(true)
     try {
-      const patientId = localStorage.getItem('contextmd_patient_id') ?? ''
+      // Read patientId safely - may not exist yet, generate one if missing
+      let patientId: string
+      try {
+        patientId = localStorage.getItem('contextmd_patient_id') ?? ''
+      } catch {
+        patientId = ''
+      }
+      if (!patientId) {
+        patientId = crypto.randomUUID()
+        try { localStorage.setItem('contextmd_patient_id', patientId) } catch { /* sandboxed */ }
+      }
+
       const payload = {
         patientId,
         patientEmail: (answers.patientEmail as string) || null,
@@ -334,24 +355,28 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Submission failed')
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        throw new Error(errBody?.error ?? `HTTP ${res.status}`)
+      }
       const data = (await res.json()) as { id: string }
 
-      // Fire triage asynchronously — do not await (status page polls for result)
+      // Fire triage asynchronously - do not await (status page polls for result)
       fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ caseId: data.id, intake: payload }),
-      }).catch(() => {/* triage errors are non-fatal; case falls back to awaiting_review */})
+      }).catch(() => {/* triage errors are non-fatal */})
 
       router.push(`/status/${data.id}`)
-    } catch {
+    } catch (err) {
       setIsSubmitting(false)
-      setMessages(prev => [...prev, bot('Something went wrong. Please try again.')])
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setMessages(prev => [...prev, bot(`Something went wrong: ${msg}. Please try again.`)])
     }
   }
 
-  // ─── Input renderers ─────────────────────────────────────────────────────
+  // --- Input renderers ---
 
   function renderInput() {
     if (!q || inSummary || isTyping) return null
@@ -388,12 +413,12 @@ export default function ChatPage() {
               }}
               style={{ padding: '10px 16px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 18 }}
             >
-              →
+              ->
             </button>
           </div>
           {!q.required && (
             <button onClick={skip} style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 12, cursor: 'pointer', textAlign: 'left', padding: '2px 0' }}>
-              Skip this question →
+              Skip this question ->
             </button>
           )}
         </div>
@@ -448,10 +473,10 @@ export default function ChatPage() {
               onClick={() => submitAnswer(multiPicked.length ? multiPicked.join(', ') : '(none)', multiPicked)}
               style={{ padding: '9px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
             >
-              Done →
+              Done ->
             </button>
             <button onClick={skip} style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 12, cursor: 'pointer' }}>
-              Skip →
+              Skip ->
             </button>
           </div>
         </div>
@@ -475,7 +500,7 @@ export default function ChatPage() {
             onClick={() => submitAnswer(`${sliderValue} / 10`, sliderValue)}
             style={{ padding: '9px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13, alignSelf: 'flex-start' }}
           >
-            Confirm →
+            Confirm ->
           </button>
         </div>
       )
@@ -484,29 +509,29 @@ export default function ChatPage() {
     return null
   }
 
-  // ─── Summary rows ─────────────────────────────────────────────────────────
+  // --- Summary rows (all rows shown, fallback text for empty) ---
 
   const summaryRows: [string, string][] = [
-    ['Email', answers.patientEmail as string],
-    ['Body location', answers.bodyLocation as string],
-    ['Sub-location', answers.bodySubLocation as string],
-    ['Symptom type', answers.symptomType as string],
-    ['Description', answers.symptomDescription as string],
-    ['Started', answers.timelineStart as string],
-    ['Change', answers.timelineChanged as string],
+    ['Email', (answers.patientEmail as string) || '(not provided)'],
+    ['Body location', (answers.bodyLocation as string) || '(not provided)'],
+    ['Sub-location', (answers.bodySubLocation as string) || '(not provided)'],
+    ['Symptom type', (answers.symptomType as string) || '(not provided)'],
+    ['Description', (answers.symptomDescription as string) || '(not provided)'],
+    ['Started', (answers.timelineStart as string) || '(not provided)'],
+    ['Change', (answers.timelineChanged as string) || '(not provided)'],
     ['Severity', `${answers.painSeverity} / 10`],
-    ['Associated', Array.isArray(answers.associatedSymptoms) ? (answers.associatedSymptoms as string[]).join(', ') || '—' : '—'],
-    ['Notes', answers.freeText as string],
-    ['Question 1', answers.q1 as string],
-    ['Question 2', answers.q2 as string],
-    ['Conditions', answers.medicalConditions as string],
-    ['Medications', answers.medications as string],
-    ['Allergies', answers.allergies as string],
+    ['Associated', Array.isArray(answers.associatedSymptoms) && (answers.associatedSymptoms as string[]).length > 0 ? (answers.associatedSymptoms as string[]).join(', ') : 'None'],
+    ['Notes', (answers.freeText as string) || '(not provided)'],
+    ['Question 1', (answers.q1 as string) || '(not provided)'],
+    ['Question 2', (answers.q2 as string) || '(not provided)'],
+    ['Conditions', (answers.medicalConditions as string) || '(not provided)'],
+    ['Medications', (answers.medications as string) || '(not provided)'],
+    ['Allergies', (answers.allergies as string) || '(not provided)'],
   ]
 
   const showBack = (currentStep > 0 || inSummary) && !isTyping
 
-  // ─── Render ──────────────────────────────────────────────────────────────
+  // --- Render ---
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 46px)', background: '#eff6ff', width: '100%' }}>
@@ -515,7 +540,7 @@ export default function ChatPage() {
       <div style={{ background: 'white', padding: '10px 20px 0', boxShadow: '0 1px 0 #dbeafe', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#1e40af' }}>
-            {inSummary ? 'Review & submit' : currentStep >= 0 ? `Question ${currentStep + 1} of ${TOTAL}` : '…'}
+            {inSummary ? 'Review & submit' : currentStep >= 0 ? `Question ${currentStep + 1} of ${TOTAL}` : '...'}
           </span>
           <span style={{ fontSize: 11, color: '#93c5fd' }}>
             {!inSummary && currentStep >= 0 && `${Math.round((currentStep / TOTAL) * 100)}%`}
@@ -564,23 +589,19 @@ export default function ChatPage() {
           </div>
         ))}
 
-        {/* Summary card — only shown when inSummary */}
+        {/* Summary card - shown when inSummary, no filtering, all rows always visible */}
         {inSummary && (
           <div style={{
             marginLeft: 36, background: 'white', borderRadius: 12,
-            overflow: 'hidden', boxShadow: '0 2px 8px rgba(37,99,235,0.1)',
+            boxShadow: '0 2px 8px rgba(37,99,235,0.1)',
+            overflow: 'visible',
           }}>
-            {summaryRows
-              .filter(([, v]) => typeof v === 'string' ? v.trim() !== '' && v !== '(skipped)' : true)
-              .map(([label, value]) => (
-                <div key={label} style={{ display: 'flex', gap: 12, padding: '9px 16px', borderBottom: '1px solid #f0f7ff' }}>
-                  <span style={{ color: '#64748b', fontSize: 12, width: 120, flexShrink: 0 }}>{label}</span>
-                  <span style={{ color: '#1e293b', fontSize: 13, fontWeight: 500, flex: 1 }}>{value}</span>
-                </div>
-              ))}
-            {summaryRows.filter(([, v]) => typeof v === 'string' ? v.trim() !== '' && v !== '(skipped)' : true).length === 0 && (
-              <div style={{ padding: '16px', color: '#64748b', fontSize: 13 }}>No responses recorded.</div>
-            )}
+            {summaryRows.map(([label, value]) => (
+              <div key={label} style={{ display: 'flex', gap: 12, padding: '9px 16px', borderBottom: '1px solid #f0f7ff' }}>
+                <span style={{ color: '#64748b', fontSize: 12, width: 120, flexShrink: 0 }}>{label}</span>
+                <span style={{ color: '#1e293b', fontSize: 13, fontWeight: 500, flex: 1 }}>{value}</span>
+              </div>
+            ))}
           </div>
         )}
 
@@ -623,14 +644,14 @@ export default function ChatPage() {
                 marginBottom: 10,
               }}
             >
-              {isSubmitting ? 'Submitting…' : 'Submit my case →'}
+              {isSubmitting ? 'Submitting...' : 'Submit my case ->'}
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 value={summaryNote}
                 onChange={e => setSummaryNote(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitSummaryNote() } }}
-                placeholder="Add a note or correction…"
+                placeholder="Add a note or correction..."
                 style={{
                   flex: 1, padding: '9px 14px',
                   border: '1.5px solid #bfdbfe', borderRadius: 10,
@@ -642,7 +663,7 @@ export default function ChatPage() {
                 onClick={submitSummaryNote}
                 style={{ padding: '9px 14px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 16 }}
               >
-                →
+                ->
               </button>
             </div>
           </>
@@ -651,7 +672,7 @@ export default function ChatPage() {
         {showBack && (
           <div style={{ marginTop: 8 }}>
             <button onClick={goBack} style={{ background: 'none', border: 'none', color: '#93c5fd', fontSize: 12, cursor: 'pointer', padding: 0 }}>
-              ← Back
+              <- Back
             </button>
           </div>
         )}
