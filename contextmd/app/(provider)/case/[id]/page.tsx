@@ -6,52 +6,43 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2, Eye, Calendar, AlertCircle, Camera, Pill } from 'lucide-react';
+import { useT } from '@/lib/i18n/useT';
+import { useLang } from '@/lib/i18n/LanguageContext';
+import { translateCaseOption } from '@/lib/i18n/translations';
+import { providerFetch } from '@/lib/providerFetch';
 
-const OUTCOMES: {
-  value: TriageOutcome;
-  label: string;
-  icon: React.ElementType;
-  accentColor: string;
-  accentBg: string;
-}[] = [
-  { value: 'self_manageable',  label: 'Self-manageable',   icon: CheckCircle2, accentColor: '#15803d', accentBg: '#f0fdf4' },
-  { value: 'monitor',          label: 'Monitor',            icon: Eye,          accentColor: '#a16207', accentBg: '#fefce8' },
-  { value: 'book_appointment', label: 'Book appointment',   icon: Calendar,     accentColor: '#1d4ed8', accentBg: '#eff6ff' },
-  { value: 'urgent',           label: 'Urgent',             icon: AlertCircle,  accentColor: '#c2410c', accentBg: '#fff7ed' },
-  { value: 'pharmacy_guidance',label: 'Pharmacy / Meds',   icon: Pill,         accentColor: '#7c3aed', accentBg: '#f5f3ff' },
-];
-
-const PHARMACY_ACTIONS: { key: string; label: string; icon: string }[] = [
-  { key: 'call_pharmacy',       label: 'Call your local pharmacy',            icon: '📞' },
-  { key: 'take_medications',    label: 'Take these specific medications',     icon: '💊' },
-  { key: 'avoid_medications',   label: 'Avoid these medications',             icon: '🚫' },
-  { key: 'see_pharmacist',      label: 'Visit a pharmacist (no appt needed)', icon: '🏪' },
-  { key: 'monitor_side_effects',label: 'Monitor for side effects',            icon: '👁' },
-  { key: 'check_interactions',  label: 'Check drug interactions with pharmacist', icon: '⚠️' },
-];
-
-const NAV_ACTION_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; detail: string }> = {
-  stay_home:        { label: 'AI told patient: Stay home & rest',          color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', detail: 'Patient was advised to manage symptoms at home.' },
-  call_811:         { label: 'AI told patient: Call 811 (Info-Santé)',      color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe', detail: 'Patient was directed to speak with a registered nurse.' },
-  see_pharmacist:   { label: 'AI told patient: See a pharmacist',          color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe', detail: 'Patient was directed to a Quebec pharmacist prescriber.' },
-  walk_in_soon:     { label: 'AI told patient: Visit a walk-in clinic',    color: '#92400e', bg: '#fffbeb', border: '#fde68a', detail: 'Patient was told to visit a walk-in or CLSC within 2–5 days.' },
-  book_appointment: { label: 'AI told patient: Book an appointment',       color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', detail: 'Patient was advised to schedule a follow-up with a provider.' },
-  er_now:           { label: 'AI told patient: Go to Emergency now',       color: '#991b1b', bg: '#fff1f2', border: '#fecaca', detail: 'Patient was directed to the emergency department immediately.' },
+// Static visual config only — labels come from translations
+const OUTCOME_VISUAL: Record<TriageOutcome, { icon: React.ElementType; accentColor: string; accentBg: string }> = {
+  self_manageable:   { icon: CheckCircle2, accentColor: '#15803d', accentBg: '#f0fdf4' },
+  monitor:           { icon: Eye,          accentColor: '#a16207', accentBg: '#fefce8' },
+  book_appointment:  { icon: Calendar,     accentColor: '#1d4ed8', accentBg: '#eff6ff' },
+  urgent:            { icon: AlertCircle,  accentColor: '#c2410c', accentBg: '#fff7ed' },
+  pharmacy_guidance: { icon: Pill,         accentColor: '#7c3aed', accentBg: '#f5f3ff' },
 };
 
-const PROVIDER_TYPES = [
-  'Family physician', 'Dermatologist', 'Cardiologist', 'Orthopedist',
-  'Gastroenterologist', 'Neurologist', 'Gynecologist', 'Urologist', 'Walk-in clinic',
-];
-const TIMEFRAMES = [
-  'Within 24–48 hours', 'Within 1 week', 'Within 2–4 weeks',
-  'Within 1–3 months', 'Next available appointment',
-];
+// SVG icons for pharmacy actions — labels come from translations
+const PHARMACY_ACTION_ICONS: Record<string, React.JSX.Element> = {
+  call_pharmacy:        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+  take_medications:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="9" width="20" height="6" rx="3" ry="3"/><line x1="12" y1="9" x2="12" y2="15"/></svg>,
+  avoid_medications:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+  see_pharmacist:       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>,
+  monitor_side_effects: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  check_interactions:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+};
 
-const TIER_CONFIG: Record<number, { dot: string; text: string; label: string }> = {
-  1: { dot: '#16a34a', text: '#15803d', label: 'T1 — Monitor' },
-  2: { dot: '#ca8a04', text: '#a16207', label: 'T2 — Appointment' },
-  3: { dot: '#ea580c', text: '#c2410c', label: 'T3 — Urgent' },
+// Static colors for nav action banners
+const NAV_ACTION_COLORS: Record<string, { color: string; bg: string; border: string }> = {
+  stay_home:        { color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  see_pharmacist:   { color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+  walk_in_soon:     { color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  book_appointment: { color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  er_now:           { color: '#991b1b', bg: '#fff1f2', border: '#fecaca' },
+};
+
+const TIER_COLORS: Record<number, { dot: string; text: string }> = {
+  1: { dot: '#16a34a', text: '#15803d' },
+  2: { dot: '#ca8a04', text: '#a16207' },
+  3: { dot: '#ea580c', text: '#c2410c' },
 };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -80,7 +71,11 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 export default function ProviderCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useT();
+  const pc = t.provider.case;
+  const { lang } = useLang();
   const [caseData, setCaseData] = useState<Case | null>(null);
+  const [translated, setTranslated] = useState<Record<string, string> | null>(null);
   const [outcome, setOutcome] = useState<TriageOutcome | ''>('');
 
   // SBAR fields
@@ -112,6 +107,61 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
       .then(setCaseData);
   }, [id]);
 
+  useEffect(() => {
+    if (!caseData || lang === 'en') { setTranslated(null); return; }
+
+    // Use pre-stored French translation if available (generated at triage time)
+    const stored = caseData.ai_brief?.fr;
+    if (stored) {
+      setTranslated({
+        tierReasoning:    stored.tierReasoning,
+        chiefComplaint:   stored.chiefComplaint,
+        timeline:         stored.timeline,
+        severity:         stored.severity,
+        redFlags:         stored.redFlags.join(' | '),
+        medicationFlags:  stored.medicationFlags.join(' | '),
+        relevantHistory:  stored.relevantHistory,
+        nihContext:       stored.nihContext,
+        freeText:         stored.freeText,
+        patientQuestions: stored.patientQuestions.join(' || '),
+      });
+      return;
+    }
+
+    // Fallback: on-demand translation for older cases without stored fr
+    const brief = caseData.ai_brief;
+    const fields: Record<string, string> = {
+      tierReasoning:    caseData.ai_tier_reasoning ?? '',
+      chiefComplaint:   brief?.chiefComplaint ?? '',
+      timeline:         brief?.timeline ?? '',
+      severity:         brief?.severity ?? '',
+      redFlags:         brief?.redFlags?.join(' | ') ?? '',
+      medicationFlags:  brief?.medicationFlags?.join(' | ') ?? '',
+      relevantHistory:  brief?.relevantHistory ?? '',
+      nihContext:       brief?.nihContext ?? '',
+      freeText:         caseData.free_text ?? '',
+      patientQuestions: (caseData.patient_questions ?? []).join(' || '),
+    };
+    fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields, targetLang: lang }),
+    })
+      .then(r => r.json())
+      .then(setTranslated)
+      .catch(() => setTranslated(null));
+  }, [caseData, lang]);
+
+  // Returns translated value if available, else original
+  function tx(key: string, original: string): string {
+    return translated?.[key] ?? original;
+  }
+  function txList(key: string, original: string[], sep: string): string[] {
+    const raw = translated?.[key];
+    if (!raw) return original;
+    return raw.split(sep).map(s => s.trim()).filter(Boolean);
+  }
+
   function togglePharmacyAction(key: string) {
     setPharmacyActions(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
@@ -121,9 +171,8 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
   async function submitResponse() {
     if (!outcome || !sbarSituation.trim() || !sbarBackground.trim() || !sbarAssessment.trim() || !sbarRecommendation.trim()) return;
     setSubmitting(true);
-    await fetch(`/api/respond/${id}`, {
+    await providerFetch(`/api/respond/${id}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         outcome,
         sbar_situation: sbarSituation,
@@ -144,19 +193,38 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
     router.push('/worklist');
   }
 
+  const PROVIDER_TYPES = pc.providerTypes;
+  const TIMEFRAMES = pc.timeframes;
+
+  // Build translated outcome list
+  const OUTCOMES = (Object.keys(OUTCOME_VISUAL) as TriageOutcome[]).map(value => ({
+    value,
+    label: pc.outcomes[value] ?? value,
+    ...OUTCOME_VISUAL[value],
+  }));
+
+  // Build translated pharmacy actions list
+  const PHARMACY_ACTIONS = Object.keys(PHARMACY_ACTION_ICONS).map(key => ({
+    key,
+    label: pc.pharmacyActions[key] ?? key,
+    icon: PHARMACY_ACTION_ICONS[key],
+  }));
+
   if (!caseData) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: '#94a3b8', fontSize: 13 }}>
-        Loading case...
+        {pc.loading}
       </div>
     );
   }
 
   const brief = caseData.ai_brief;
   const tier = caseData.tier ?? 1;
-  const tierCfg = TIER_CONFIG[tier] ?? TIER_CONFIG[1];
+  const tierColors = TIER_COLORS[tier] ?? TIER_COLORS[1];
+  const tierCfg = { ...tierColors, label: pc.tierLabels[tier] ?? `T${tier}` };
   const navAction = caseData.navigation_action as NavigationAction | null;
-  const navCfg = navAction ? NAV_ACTION_CONFIG[navAction] : null;
+  const navColors = navAction ? NAV_ACTION_COLORS[navAction] : null;
+  const navText = navAction ? pc.navAction[navAction] : null;
   const canSubmit = outcome && sbarSituation.trim() && sbarBackground.trim() && sbarAssessment.trim() && sbarRecommendation.trim() && !submitting;
 
   return (
@@ -168,11 +236,11 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           onClick={() => router.push('/worklist')}
           style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 10, fontFamily: 'inherit' }}
         >
-          ← Back to worklist
+          {pc.backToWorklist}
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', letterSpacing: '-0.4px', margin: 0 }}>
-            {caseData.body_location} — {caseData.symptom_type}
+            {translateCaseOption(caseData.body_location ?? '', 'bodyLocations', lang)} / {translateCaseOption(caseData.symptom_type ?? '', 'symptomTypes', lang)}
           </h1>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700, color: tierCfg.text }}>
             <span style={{ width: 8, height: 8, background: tierCfg.dot, borderRadius: '50%', display: 'inline-block' }} />
@@ -181,11 +249,11 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* AI navigation action banner — what the patient was already told */}
-      {navCfg && (
+      {/* AI navigation action banner:what the patient was already told */}
+      {navColors && navText && (
         <div style={{
-          background: navCfg.bg,
-          border: `1.5px solid ${navCfg.border}`,
+          background: navColors.bg,
+          border: `1.5px solid ${navColors.border}`,
           borderRadius: 8,
           padding: '12px 16px',
           marginBottom: 20,
@@ -193,14 +261,14 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           alignItems: 'flex-start',
           gap: 10,
         }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={navCfg.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={navColors.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}>
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           <div>
-            <p style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 700, color: navCfg.color }}>{navCfg.label}</p>
-            <p style={{ margin: 0, fontSize: 11.5, color: navCfg.color, opacity: 0.8, lineHeight: 1.5 }}>{navCfg.detail}</p>
+            <p style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 700, color: navColors.color }}>{navText.label}</p>
+            <p style={{ margin: 0, fontSize: 11.5, color: navColors.color, opacity: 0.8, lineHeight: 1.5 }}>{navText.detail}</p>
           </div>
         </div>
       )}
@@ -208,37 +276,37 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
       {/* Two-column layout */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 20, alignItems: 'start' }}>
 
-        {/* LEFT — Brief + intake */}
+        {/* LEFT:Brief + intake */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Tier reasoning */}
           {caseData.ai_tier_reasoning && (
             <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6 }}>
-              {caseData.ai_tier_reasoning}
+              {tx('tierReasoning', caseData.ai_tier_reasoning)}
             </p>
           )}
 
           {/* AI Clinical Brief */}
           {brief && (
             <Card>
-              <SectionLabel>AI Clinical Brief</SectionLabel>
+              <SectionLabel>{pc.aiBrief}</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
                 <div>
-                  <span style={{ fontWeight: 600, color: '#374151' }}>Chief complaint: </span>
-                  <span style={{ color: '#1e293b' }}>{brief.chiefComplaint}</span>
+                  <span style={{ fontWeight: 600, color: '#374151' }}>{pc.chiefComplaint}: </span>
+                  <span style={{ color: '#1e293b' }}>{tx('chiefComplaint', brief.chiefComplaint)}</span>
                 </div>
                 <div>
-                  <span style={{ fontWeight: 600, color: '#374151' }}>Timeline: </span>
-                  <span style={{ color: '#1e293b' }}>{brief.timeline}</span>
+                  <span style={{ fontWeight: 600, color: '#374151' }}>{pc.timeline}: </span>
+                  <span style={{ color: '#1e293b' }}>{tx('timeline', brief.timeline)}</span>
                 </div>
                 <div>
-                  <span style={{ fontWeight: 600, color: '#374151' }}>Severity: </span>
-                  <span style={{ color: '#1e293b' }}>{brief.severity}</span>
+                  <span style={{ fontWeight: 600, color: '#374151' }}>{pc.severity}: </span>
+                  <span style={{ color: '#1e293b' }}>{tx('severity', brief.severity)}</span>
                 </div>
                 {brief.redFlags.length > 0 && (
                   <div>
-                    <span style={{ fontWeight: 600, color: '#c2410c' }}>Red flags: </span>
-                    <span style={{ color: '#c2410c' }}>{brief.redFlags.join(', ')}</span>
+                    <span style={{ fontWeight: 600, color: '#c2410c' }}>{pc.redFlags}: </span>
+                    <span style={{ color: '#c2410c' }}>{txList('redFlags', brief.redFlags, '|').join(', ')}</span>
                   </div>
                 )}
                 {brief.medicationFlags.length > 0 && (
@@ -249,18 +317,18 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                         <line x1="12" y1="9" x2="12" y2="13"/>
                         <line x1="12" y1="17" x2="12.01" y2="17"/>
                       </svg>
-                      Medication Flags
+                      {pc.medicationFlags}
                     </span>
-                    <span style={{ color: '#92400e', fontWeight: 600, fontSize: 13 }}>{brief.medicationFlags.join(', ')}</span>
+                    <span style={{ color: '#92400e', fontWeight: 600, fontSize: 13 }}>{txList('medicationFlags', brief.medicationFlags, '|').join(', ')}</span>
                   </div>
                 )}
                 <div>
-                  <span style={{ fontWeight: 600, color: '#374151' }}>History: </span>
-                  <span style={{ color: '#1e293b' }}>{brief.relevantHistory}</span>
+                  <span style={{ fontWeight: 600, color: '#374151' }}>{pc.history}: </span>
+                  <span style={{ color: '#1e293b' }}>{tx('relevantHistory', brief.relevantHistory)}</span>
                 </div>
                 <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
-                  <span style={{ fontWeight: 600, color: '#1d4ed8' }}>NIH context: </span>
-                  <span style={{ color: '#1e293b' }}>{brief.nihContext}</span>
+                  <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{pc.nihContext}: </span>
+                  <span style={{ color: '#1e293b' }}>{tx('nihContext', brief.nihContext)}</span>
                 </div>
               </div>
             </Card>
@@ -268,10 +336,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
           {/* Patient questions + doctor Q&A */}
           <Card style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
-            <SectionLabel>Patient&apos;s questions</SectionLabel>
+            <SectionLabel>{pc.patientQuestions}</SectionLabel>
             {(caseData.patient_questions?.length ?? 0) > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-                {caseData.patient_questions.map((q, i) => (
+                {txList('patientQuestions', caseData.patient_questions, '||').map((q, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: '#92400e', lineHeight: 1.5 }}>
                     <span style={{ fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
                     <span>{q}</span>
@@ -279,13 +347,13 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                 ))}
               </div>
             ) : (
-              <p style={{ fontSize: 12.5, color: '#a37b23', marginBottom: 14 }}>No questions submitted by patient.</p>
+              <p style={{ fontSize: 12.5, color: '#a37b23', marginBottom: 14 }}>{pc.noQuestions}</p>
             )}
             <div style={{ borderTop: '1px solid #fde68a', paddingTop: 12 }}>
-              <p style={{ margin: '0 0 6px', fontSize: 10, fontWeight: 700, color: '#a37b23', letterSpacing: '1px', textTransform: 'uppercase' }}>Ask the patient a follow-up question</p>
-              <p style={{ margin: '0 0 8px', fontSize: 11.5, color: '#92400e', opacity: 0.8, lineHeight: 1.5 }}>Optional — this will appear on the patient&apos;s status page alongside your response.</p>
+              <p style={{ margin: '0 0 6px', fontSize: 10, fontWeight: 700, color: '#a37b23', letterSpacing: '1px', textTransform: 'uppercase' }}>{pc.askFollowup}</p>
+              <p style={{ margin: '0 0 8px', fontSize: 11.5, color: '#92400e', opacity: 0.8, lineHeight: 1.5 }}>{pc.askFollowupHint}</p>
               <Textarea
-                placeholder="e.g. Have you noticed any swelling around the area? Does the pain radiate anywhere?"
+                placeholder={pc.followupPlaceholder}
                 value={doctorQuestion}
                 onChange={e => setDoctorQuestion(e.target.value)}
                 rows={2}
@@ -297,26 +365,26 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
           {/* Patient description */}
           <Card>
-            <SectionLabel>Patient&apos;s description</SectionLabel>
+            <SectionLabel>{pc.patientDescription}</SectionLabel>
             <p style={{ fontSize: 13, color: '#1e293b', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
-              {caseData.free_text || <span style={{ color: '#94a3b8' }}>No description provided.</span>}
+              {caseData.free_text ? tx('freeText', caseData.free_text) : <span style={{ color: '#94a3b8' }}>{pc.noDescription}</span>}
             </p>
           </Card>
 
           {/* Medical history */}
           <Card>
-            <SectionLabel>Medical history</SectionLabel>
+            <SectionLabel>{pc.medHistory}</SectionLabel>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
-              <div><span style={{ fontWeight: 600, color: '#374151' }}>Conditions: </span><span style={{ color: '#1e293b' }}>{caseData.medical_conditions?.join(', ') || 'None reported'}</span></div>
-              <div><span style={{ fontWeight: 600, color: '#374151' }}>Medications: </span><span style={{ color: '#1e293b' }}>{caseData.medications?.join(', ') || 'None reported'}</span></div>
-              <div><span style={{ fontWeight: 600, color: '#374151' }}>Allergies: </span><span style={{ color: '#1e293b' }}>{caseData.allergies?.join(', ') || 'None reported'}</span></div>
+              <div><span style={{ fontWeight: 600, color: '#374151' }}>{pc.conditions}: </span><span style={{ color: '#1e293b' }}>{caseData.medical_conditions?.join(', ') || pc.noneReported}</span></div>
+              <div><span style={{ fontWeight: 600, color: '#374151' }}>{pc.medications}: </span><span style={{ color: '#1e293b' }}>{caseData.medications?.join(', ') || pc.noneReported}</span></div>
+              <div><span style={{ fontWeight: 600, color: '#374151' }}>{pc.allergies}: </span><span style={{ color: '#1e293b' }}>{caseData.allergies?.join(', ') || pc.noneReported}</span></div>
             </div>
           </Card>
 
           {/* Photos */}
           {caseData.photo_count > 0 && (
             <Card>
-              <SectionLabel>Photos ({caseData.photo_count})</SectionLabel>
+              <SectionLabel>{pc.photos} ({caseData.photo_count})</SectionLabel>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {caseData.photo_names?.map((name, i) => (
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -327,17 +395,17 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                   </div>
                 ))}
               </div>
-              <p style={{ fontSize: 11, color: '#94a3b8', margin: '10px 0 0' }}>Photo preview unavailable in demo mode.</p>
+              <p style={{ fontSize: 11, color: '#94a3b8', margin: '10px 0 0' }}>{pc.photoPreview}</p>
             </Card>
           )}
         </div>
 
-        {/* RIGHT — Response form */}
+        {/* RIGHT:Response form */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Outcome selector */}
           <Card>
-            <SectionLabel>Select outcome</SectionLabel>
+            <SectionLabel>{pc.selectOutcome}</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {OUTCOMES.map(o => {
                 const Icon = o.icon;
@@ -370,9 +438,9 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           {/* Pharmacy guidance panel */}
           {outcome === 'pharmacy_guidance' && (
             <Card style={{ border: '1.5px solid #ddd6fe' }}>
-              <SectionLabel>Pharmacy &amp; Medication Actions</SectionLabel>
+              <SectionLabel>{pc.pharmacyPanel}</SectionLabel>
               <p style={{ fontSize: 11.5, color: '#6d28d9', margin: '0 0 12px', lineHeight: 1.5, opacity: 0.8 }}>
-                Select all actions that apply. These will be shown as clear, interactive steps to the patient.
+                {pc.pharmacyPanelHint}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                 {PHARMACY_ACTIONS.map(action => {
@@ -393,7 +461,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                         transition: 'all 0.1s',
                       }}
                     >
-                      <span style={{ fontSize: 16, lineHeight: 1 }}>{action.icon}</span>
+                      <span style={{ lineHeight: 1, display: 'flex', flexShrink: 0 }}>{action.icon}</span>
                       <span style={{ fontSize: 12.5, fontWeight: selected ? 600 : 400, color: selected ? '#5b21b6' : '#374151' }}>
                         {action.label}
                       </span>
@@ -410,10 +478,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
               </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 11, fontWeight: 600, color: '#6d28d9', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                  Specific medications to take / avoid (optional)
+                  {pc.pharmacyMedsLabel}
                 </label>
                 <Textarea
-                  placeholder={`e.g. Take Ibuprofen 400mg every 6 hours with food.\nAvoid Aspirin if you are on blood thinners.`}
+                  placeholder={pc.pharmacyMedsPlaceholder}
                   value={pharmacyMedications}
                   onChange={e => setPharmacyMedications(e.target.value)}
                   rows={3}
@@ -423,10 +491,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 600, color: '#6d28d9', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                  Additional pharmacy note (optional)
+                  {pc.pharmacyNoteLabel}
                 </label>
                 <Textarea
-                  placeholder="e.g. Your current medications may interact. Ask your pharmacist before starting anything new."
+                  placeholder={pc.pharmacyNotePlaceholder}
                   value={pharmacyNote}
                   onChange={e => setPharmacyNote(e.target.value)}
                   rows={2}
@@ -440,19 +508,19 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           {/* Monitor details */}
           {outcome === 'monitor' && (
             <Card>
-              <SectionLabel>Monitor details</SectionLabel>
+              <SectionLabel>{pc.monitorTitle}</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                    Follow up in (days)
+                    {pc.followupDays}
                   </label>
-                  <Input type="number" placeholder="e.g. 7" value={followupDays} onChange={e => setFollowupDays(e.target.value)} />
+                  <Input type="number" placeholder="7" value={followupDays} onChange={e => setFollowupDays(e.target.value)} />
                 </div>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                    Watch for these symptoms
+                    {pc.watchFor}
                   </label>
-                  <Textarea placeholder="e.g. Increased redness, fever above 38°C..." value={watchFor} onChange={e => setWatchFor(e.target.value)} rows={3} className="resize-none" />
+                  <Textarea placeholder={pc.watchForPlaceholder} value={watchFor} onChange={e => setWatchFor(e.target.value)} rows={3} className="resize-none" />
                 </div>
               </div>
             </Card>
@@ -461,14 +529,14 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           {/* Book appointment */}
           {outcome === 'book_appointment' && (
             <Card>
-              <SectionLabel>Appointment details</SectionLabel>
+              <SectionLabel>{pc.apptTitle}</SectionLabel>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                    Specialist type
+                    {pc.specialistType}
                   </label>
                   <Select value={providerType} onValueChange={v => setProviderType(v ?? '')}>
-                    <SelectTrigger><SelectValue placeholder="Select specialist..." /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={pc.selectSpecialist} /></SelectTrigger>
                     <SelectContent>
                       {PROVIDER_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
@@ -476,10 +544,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                    Recommended timeframe
+                    {pc.timeframe}
                   </label>
                   <Select value={timeframe} onValueChange={v => setTimeframe(v ?? '')}>
-                    <SelectTrigger><SelectValue placeholder="Select timeframe..." /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={pc.selectTimeframe} /></SelectTrigger>
                     <SelectContent>
                       {TIMEFRAMES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
@@ -492,9 +560,9 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           {/* Urgent */}
           {outcome === 'urgent' && (
             <Card style={{ borderColor: '#fca5a5' }}>
-              <SectionLabel>Urgency note</SectionLabel>
+              <SectionLabel>{pc.urgencyTitle}</SectionLabel>
               <Textarea
-                placeholder="e.g. Go to an urgent care clinic today. Do not wait more than 24 hours..."
+                placeholder={pc.urgencyNotePlaceholder}
                 value={urgencyNote}
                 onChange={e => setUrgencyNote(e.target.value)}
                 rows={3}
@@ -506,17 +574,17 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
           {/* SBAR Response */}
           <Card>
-            <SectionLabel>SBAR Response (all fields required)</SectionLabel>
+            <SectionLabel>{pc.sbarTitle}</SectionLabel>
             <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 14px', lineHeight: 1.5 }}>
-              Use the SBAR framework for clinical clarity. Write in plain language for the patient.
+              {pc.sbarHint}
             </p>
 
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                Situation — What is happening right now?
+                {pc.sbarSituation}
               </label>
               <Textarea
-                placeholder="e.g. You've described a persistent headache that started 3 days ago..."
+                placeholder={pc.sbarPlaceholderSituation}
                 value={sbarSituation}
                 onChange={e => setSbarSituation(e.target.value)}
                 rows={3}
@@ -526,10 +594,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                Background — Relevant history and context
+                {pc.sbarBackground}
               </label>
               <Textarea
-                placeholder="e.g. You mentioned this is similar to tension headaches you've had before, but this one is lasting longer..."
+                placeholder={pc.sbarPlaceholderBackground}
                 value={sbarBackground}
                 onChange={e => setSbarBackground(e.target.value)}
                 rows={3}
@@ -539,10 +607,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                Assessment — Your clinical impression
+                {pc.sbarAssessment}
               </label>
               <Textarea
-                placeholder="e.g. Based on your description, this appears to be a tension-type headache without red flag features..."
+                placeholder={pc.sbarPlaceholderAssessment}
                 value={sbarAssessment}
                 onChange={e => setSbarAssessment(e.target.value)}
                 rows={3}
@@ -552,10 +620,10 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
 
             <div>
               <label style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-                Recommendation — What should the patient do?
+                {pc.sbarRecommendation}
               </label>
               <Textarea
-                placeholder="e.g. Try over-the-counter ibuprofen 400mg every 6 hours. Apply a warm compress to your neck and temples..."
+                placeholder={pc.sbarPlaceholderRecommendation}
                 value={sbarRecommendation}
                 onChange={e => setSbarRecommendation(e.target.value)}
                 rows={2}
@@ -579,11 +647,11 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
               transition: 'background 0.1s',
             }}
           >
-            {submitting ? 'Sending...' : 'Send Response to Patient'}
+            {submitting ? pc.submitting : pc.submit}
           </button>
 
           <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', lineHeight: 1.5, margin: 0 }}>
-            By submitting, you confirm this is triage navigation guidance, not a medical diagnosis.
+            {pc.submitDisclaimer}
           </p>
         </div>
       </div>

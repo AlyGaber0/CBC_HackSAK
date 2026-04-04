@@ -1,7 +1,7 @@
 // lib/nih.ts
 import type { NihSource } from './types';
 
-// MedlinePlus Connect — patient-readable condition summaries
+// MedlinePlus Connect:patient-readable condition summaries
 export async function fetchMedlinePlus(
   conditionTerm: string
 ): Promise<NihSource | null> {
@@ -24,7 +24,7 @@ export async function fetchMedlinePlus(
   }
 }
 
-// PubMed E-utilities — single search call only (no summary round-trip)
+// PubMed E-utilities:single search call only (no summary round-trip)
 export async function fetchPubMed(
   query: string
 ): Promise<NihSource | null> {
@@ -37,7 +37,7 @@ export async function fetchPubMed(
     const pmid = searchData?.esearchresult?.idlist?.[0];
     if (!pmid) return null;
 
-    // Use search metadata directly — skip the second summary fetch
+    // Use search metadata directly:skip the second summary fetch
     const translationStack = searchData?.esearchresult?.translationstack;
     const termUsed = Array.isArray(translationStack)
       ? translationStack.find((t: { term?: string }) => t?.term)?.term ?? query
@@ -54,7 +54,7 @@ export async function fetchPubMed(
   }
 }
 
-// RxNorm — validate and normalize medication names
+// RxNorm:validate and normalize medication names
 export async function lookupRxNorm(
   medicationName: string
 ): Promise<NihSource | null> {
@@ -78,7 +78,7 @@ export async function lookupRxNorm(
   }
 }
 
-// OpenFDA FAERS — adverse event data for medication symptoms
+// OpenFDA FAERS:adverse event data for medication symptoms
 export async function fetchOpenFDA(
   medicationName: string
 ): Promise<NihSource | null> {
@@ -93,7 +93,7 @@ export async function fetchOpenFDA(
 
     return {
       source: 'openfda',
-      title: `${medicationName} — FDA Adverse Event Data`,
+      title: `${medicationName}:FDA Adverse Event Data`,
       url: `https://www.fda.gov/safety/faers-public-dashboard`,
       excerpt: `Most reported adverse reactions: ${topReactions}. Source: FDA FAERS database.`,
     };

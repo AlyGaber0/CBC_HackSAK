@@ -15,8 +15,7 @@ export type TriageOutcome =
   | 'pharmacy_guidance';
 
 export type NavigationAction =
-  | 'stay_home'       // Tier 0 — self-care
-  | 'call_811'        // Non-emergency helpline (Quebec)
+  | 'stay_home'       // Tier 0: self-care
   | 'see_pharmacist'  // Pharmacist prescribing (unique to Quebec)
   | 'walk_in_soon'    // Walk-in clinic within days
   | 'book_appointment'// Book a specialist/GP
@@ -66,6 +65,19 @@ export interface ClinicalBrief {
   relevantHistory: string;
   patientQuestions: string[];
   nihContext: string;
+  /** Pre-translated French version, populated at triage time */
+  fr?: {
+    tierReasoning: string;
+    chiefComplaint: string;
+    timeline: string;
+    severity: string;
+    redFlags: string[];
+    medicationFlags: string[];
+    relevantHistory: string;
+    nihContext: string;
+    freeText: string;
+    patientQuestions: string[];
+  };
 }
 
 export interface Response {

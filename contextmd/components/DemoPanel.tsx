@@ -11,8 +11,8 @@ const daysAgo = (n: number) => {
 
 const TEST_CASES: Record<string, { label: string; description: string; intake: IntakeFormState }> = {
   tier0_sunburn: {
-    label: 'Tier 0 — Mild Sunburn (Auto-Response)',
-    description: 'Clearly benign, NIH-documented self-care. AI responds instantly — no queue.',
+    label: 'Tier 0:Mild Sunburn (Auto-Response)',
+    description: 'Clearly benign, NIH-documented self-care. AI responds instantly:no queue.',
     intake: {
       patientEmail: 'demo@example.com',
       bodyLocation: 'Skin / General',
@@ -33,7 +33,7 @@ const TEST_CASES: Record<string, { label: string; description: string; intake: I
     } as IntakeFormState,
   },
   tier1_cold: {
-    label: 'Tier 1 — Common Cold (Call 811)',
+    label: 'Tier 1:Common Cold (Book Appointment)',
     description: 'Low severity, stable, seeking reassurance. Goes to provider queue.',
     intake: {
       patientEmail: 'patient@example.com',
@@ -55,7 +55,7 @@ const TEST_CASES: Record<string, { label: string; description: string; intake: I
     } as IntakeFormState,
   },
   tier2_backpain: {
-    label: 'Tier 2 — Sciatica (Walk-in Soon)',
+    label: 'Tier 2:Sciatica (Walk-in Soon)',
     description: 'Moderate severity, concerning features. Shows medication flags.',
     intake: {
       patientEmail: 'demo@example.com',
@@ -77,7 +77,7 @@ const TEST_CASES: Record<string, { label: string; description: string; intake: I
     } as IntakeFormState,
   },
   tier2_cough_medflags: {
-    label: 'Tier 2 — Persistent Cough (Medication Flag Demo)',
+    label: 'Tier 2:Persistent Cough (Medication Flag Demo)',
     description: 'Shows ACE inhibitor side effect flag in provider UI.',
     intake: {
       patientEmail: 'test@example.com',
@@ -99,7 +99,7 @@ const TEST_CASES: Record<string, { label: string; description: string; intake: I
     } as IntakeFormState,
   },
   tier3_urgent: {
-    label: 'Tier 3 — Severe Infection (ER Now)',
+    label: 'Tier 3:Severe Infection (ER Now)',
     description: 'High pain, rapidly worsening, systemic symptoms. Nav: er_now.',
     intake: {
       patientEmail: 'urgent@example.com',
@@ -121,7 +121,7 @@ const TEST_CASES: Record<string, { label: string; description: string; intake: I
     } as IntakeFormState,
   },
   tier2_pharmacist: {
-    label: 'Tier 2 — UTI Symptoms (See Pharmacist)',
+    label: 'Tier 2:UTI Symptoms (See Pharmacist)',
     description: 'Quebec pharmacist prescribing scope demo.',
     intake: {
       patientEmail: 'patient@example.com',
@@ -184,7 +184,7 @@ export default function DemoPanel() {
       const caseData = await caseRes.json();
       const caseId: string = caseData.id;
 
-      // demoKey tells the triage route to use hardcoded results — no Claude call
+      // demoKey tells the triage route to use hardcoded results:no Claude call
       setStatusMsg('Running triage\u2026');
 
       const triageRes = await fetch('/api/triage', {

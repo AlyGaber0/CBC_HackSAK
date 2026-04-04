@@ -3,26 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useIntakeStore } from '@/lib/store';
 import { checkAnyTier4 } from '@/lib/triage';
-
-const STEP_NAMES = [
-  'Contact Info',
-  'Body Location',
-  'Symptoms',
-  'Timeline',
-  'Severity',
-  'Photos',
-  'Description',
-  'Your Questions',
-  'Medical History',
-];
-
-const ASSOCIATED_SYMPTOMS = [
-  'Fever', 'Nausea', 'Fatigue', 'Headache',
-  'Shortness of breath', 'Dizziness', 'Vomiting', 'Loss of appetite',
-];
-
-const DISCLAIMER =
-  'Triaje does not provide medical diagnosis or treatment. Responses are for informational purposes only and do not replace professional medical advice.';
+import { useT } from '@/lib/i18n/useT';
 
 const s = {
   field: {
@@ -83,6 +64,9 @@ export default function IntakePage() {
   const router = useRouter();
   const store = useIntakeStore();
   const step = store.currentStep;
+  const t = useT();
+  const ti = t.intake;
+  const opts = t.chat.options;
   const [showTier4Modal, setShowTier4Modal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -147,7 +131,7 @@ export default function IntakePage() {
 
       const caseData = await res.json();
 
-      // fire-and-forget triage — pass caseId + full intake so the route can process symptoms
+      // fire-and-forget triage:pass caseId + full intake so the route can process symptoms
       fetch('/api/triage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -185,7 +169,7 @@ export default function IntakePage() {
   const navRow = (canContinue: boolean, isSubmit = false) => (
     <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
       {step > 0 && (
-        <button style={s.btnSecondary} onClick={goBack}>← Back</button>
+        <button style={s.btnSecondary} onClick={goBack}>{ti.nav.back}</button>
       )}
       {isSubmit ? (
         <button
@@ -193,8 +177,8 @@ export default function IntakePage() {
           onClick={handleSubmit}
           disabled={submitting || !canContinue}
         >
-          <span>{submitting ? 'Submitting…' : 'Submit case'}</span>
-          <span>→</span>
+          <span>{submitting ? ti.nav.submitting : ti.nav.submit}</span>
+          <span>&rarr;</span>
         </button>
       ) : (
         <button
@@ -202,8 +186,8 @@ export default function IntakePage() {
           onClick={goNext}
           disabled={!canContinue}
         >
-          <span>Continue</span>
-          <span>→</span>
+          <span>{ti.nav.continue}</span>
+          <span>&rarr;</span>
         </button>
       )}
     </div>
@@ -212,7 +196,7 @@ export default function IntakePage() {
   // ── Step renderers ─────────────────────────────────────────────
   const renderStep = () => {
     switch (step) {
-      // Step 0 — Contact Info
+      // Step 0:Contact Info
       case 0:
         return (
           <div style={s.card}>
@@ -232,7 +216,7 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 1 — Body Location
+      // Step 1:Body Location
       case 1:
         return (
           <div style={s.card}>
@@ -244,7 +228,7 @@ export default function IntakePage() {
               onChange={e => store.update({ bodyLocation: e.target.value })}
             >
               <option value="">Select a region</option>
-              {['Head / Neck', 'Chest', 'Abdomen', 'Back', 'Arms / Hands', 'Legs / Feet', 'Skin / General'].map(o => (
+              {opts.bodyLocations.map(o => (
                 <option key={o}>{o}</option>
               ))}
             </select>
@@ -264,7 +248,7 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 2 — Symptoms
+      // Step 2:Symptoms
       case 2:
         return (
           <div style={s.card}>
@@ -276,7 +260,7 @@ export default function IntakePage() {
               onChange={e => store.update({ symptomType: e.target.value })}
             >
               <option value="">Select a type</option>
-              {['Pain', 'Swelling', 'Rash', 'Discharge', 'Fatigue', 'Other'].map(o => (
+              {opts.symptomTypes.map(o => (
                 <option key={o}>{o}</option>
               ))}
             </select>
@@ -292,7 +276,7 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 3 — Timeline
+      // Step 3:Timeline
       case 3:
         return (
           <div style={s.card}>
@@ -313,22 +297,23 @@ export default function IntakePage() {
               onChange={e => store.update({ timelineChanged: e.target.value as 'better' | 'worse' | 'same' })}
             >
               <option value="">Select one</option>
-              <option value="worse">Getting worse</option>
-              <option value="same">About the same</option>
-              <option value="better">Getting better</option>
+              <option value="worse">{opts.timelineOptions[0]}</option>
+              <option value="same">{opts.timelineOptions[1]}</option>
+              <option value="better">{opts.timelineOptions[2]}</option>
             </select>
             {navRow(!!store.timelineStart && !!store.timelineChanged)}
           </div>
         );
 
-      // Step 4 — Severity + Associated Symptoms
+      // Step 4:Severity + Associated Symptoms
       case 4: {
         const severity = store.painSeverity;
-        const severityLabel = severity <= 2 ? 'None to minimal' : severity <= 4 ? 'Mild' : severity <= 6 ? 'Moderate' : severity <= 8 ? 'Severe' : 'Worst imaginable';
+        const lvls = ti.severity.levels;
+        const severityLabel = severity <= 2 ? lvls[0] : severity <= 4 ? lvls[1] : severity <= 6 ? lvls[2] : severity <= 8 ? lvls[3] : lvls[4];
         return (
           <div style={s.card}>
             <label style={s.label} htmlFor="painSeverity">
-              Pain severity — <span style={{ color: '#0f2744', fontWeight: 700 }}>{severity}</span>
+              Pain severity: <span style={{ color: '#0f2744', fontWeight: 700 }}>{severity}</span>
               <span style={{ fontWeight: 400, color: '#94a3b8', marginLeft: 6 }}>({severityLabel})</span>
             </label>
             <input
@@ -340,7 +325,7 @@ export default function IntakePage() {
               style={{ width: '100%', accentColor: '#0f2744', margin: '4px 0 6px' }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-              {([['0', 'None'], ['5', 'Moderate'], ['10', 'Worst']] as [string, string][]).map(([num, lbl]) => (
+              {([[0, ti.severity.none], [5, ti.severity.moderate], [10, ti.severity.worst]] as [number, string][]).map(([num, lbl]) => (
                 <span key={num} style={{ textAlign: 'center' }}>
                   <strong style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0f2744' }}>{num}</strong>
                   <span style={{ fontSize: 10, color: '#94a3b8' }}>{lbl}</span>
@@ -350,9 +335,9 @@ export default function IntakePage() {
 
             <div style={{ height: 1, background: '#f1f5f9', marginBottom: 16 }} />
 
-            <label style={s.label}>Associated symptoms <span style={{ fontWeight: 400, color: '#94a3b8' }}>(select all that apply)</span></label>
+            <label style={s.label}>{ti.associated.label} <span style={{ fontWeight: 400, color: '#94a3b8' }}>(select all that apply)</span></label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {[...ASSOCIATED_SYMPTOMS, ...store.associatedSymptoms.filter(s => !ASSOCIATED_SYMPTOMS.includes(s))].map(sym => {
+              {[...opts.associatedSymptoms, ...store.associatedSymptoms.filter(sym => !opts.associatedSymptoms.includes(sym))].map(sym => {
                 const selected = store.associatedSymptoms.includes(sym);
                 return (
                   <button
@@ -455,7 +440,7 @@ export default function IntakePage() {
                     color: '#64748b',
                   }}
                 >
-                  + Add your own
+                  {ti.associated.addOwn}
                 </button>
               )}
             </div>
@@ -464,13 +449,13 @@ export default function IntakePage() {
         );
       }
 
-      // Step 5 — Photos (simulated)
+      // Step 5:Photos (simulated)
       case 5:
         return (
           <div style={s.card}>
-            <label style={s.label}>Photos <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional — up to 3)</span></label>
+            <label style={s.label}>{ti.photos.label} <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional, up to 3)</span></label>
             <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 14, lineHeight: 1.6 }}>
-              If relevant, upload photos of the affected area. This can help the provider better understand your concern.
+              {ti.photos.body}
             </p>
             <label
               htmlFor="photoInput"
@@ -488,8 +473,8 @@ export default function IntakePage() {
               }}
             >
               {store.photoCount > 0
-                ? `${store.photoCount} photo${store.photoCount > 1 ? 's' : ''} selected`
-                : 'Click to select photos'}
+                ? ti.photos.selected(store.photoCount)
+                : ti.photos.click}
               <input
                 id="photoInput"
                 type="file"
@@ -515,13 +500,13 @@ export default function IntakePage() {
               </div>
             )}
             <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>
-              Photos are stored securely and only visible to the reviewing provider.
+              {ti.photos.note}
             </p>
             {navRow(true)}
           </div>
         );
 
-      // Step 6 — Free-text
+      // Step 6:Free-text
       case 6:
         return (
           <div style={s.card}>
@@ -530,7 +515,7 @@ export default function IntakePage() {
               <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span>
             </label>
             <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12, lineHeight: 1.6 }}>
-              Anything else you&apos;d like the provider to know — context, what makes it better or worse, how it affects your daily life.
+              Anything else you&apos;d like the provider to know: context, what makes it better or worse, how it affects your daily life.
             </p>
             <textarea
               id="freeText"
@@ -543,13 +528,13 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 7 — Patient Questions
+      // Step 7:Patient Questions
       case 7:
         return (
           <div style={s.card}>
             <label style={s.label}>Specific questions for the provider <span style={{ fontWeight: 400, color: '#94a3b8' }}>(up to 3, optional)</span></label>
             <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 14, lineHeight: 1.6 }}>
-              These are prominently shown to whoever reviews your case. Be specific — the more precise your question, the more useful the answer.
+              These are prominently shown to whoever reviews your case. Be specific. The more precise your question, the more useful the answer.
             </p>
             {([0, 1, 2] as const).map(i => (
               <div key={i} style={{ marginBottom: i < 2 ? 12 : 0 }}>
@@ -578,7 +563,7 @@ export default function IntakePage() {
           </div>
         );
 
-      // Step 8 — Medical History + Submit
+      // Step 8:Medical History + Submit
       case 8:
         return (
           <div style={s.card}>
@@ -634,11 +619,11 @@ export default function IntakePage() {
     <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 16px 60px' }}>
       <div style={{ maxWidth: 560, width: '100%' }}>
 
-        {/* Progress bar — Q1: B */}
+        {/* Progress bar:Q1: B */}
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11, color: '#94a3b8' }}>Step {step + 1} of 8</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#0f2744' }}>{STEP_NAMES[step]}</span>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>{ti.progress(step + 1, 8)}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#0f2744' }}>{ti.stepNames[step]}</span>
           </div>
           <div style={{ height: 4, background: '#e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
             <div
@@ -656,11 +641,11 @@ export default function IntakePage() {
         {renderStep()}
 
         <p style={{ margin: '20px 0 0', fontSize: 11.5, color: '#94a3b8', lineHeight: 1.6 }}>
-          {DISCLAIMER}
+          {ti.disclaimer}
         </p>
       </div>
 
-      {/* Tier 4 Modal — Q3: C */}
+      {/* Tier 4 Modal:Q3: C */}
       {showTier4Modal && (
         <div
           style={{
@@ -693,10 +678,10 @@ export default function IntakePage() {
               </svg>
             </div>
             <h3 style={{ margin: '0 0 10px', fontSize: 16, fontWeight: 700, color: '#1e293b' }}>
-              Possible Emergency Detected
+              {ti.tier4.heading}
             </h3>
             <p style={{ margin: '0 0 22px', fontSize: 13, color: '#475569', lineHeight: 1.65 }}>
-              Your description mentions symptoms that may require immediate emergency care. Please do not wait — call 911 now.
+              {ti.tier4.body}
             </p>
             <a
               href="tel:911"
@@ -713,7 +698,7 @@ export default function IntakePage() {
                 marginBottom: 10,
               }}
             >
-              Call 911 Now →
+              {ti.tier4.callBtn}
             </a>
             <button
               onClick={() => setShowTier4Modal(false)}
@@ -731,7 +716,7 @@ export default function IntakePage() {
                 fontWeight: 600,
               }}
             >
-              Edit my description
+              {ti.tier4.editBtn}
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 // lib/triage.ts
 
 // Red flag keywords triggering immediate Tier 4 escalation.
-// Checked client-side at intake submission — no AI call made.
+// Checked client-side at intake submission:no AI call made.
 const TIER4_PATTERNS = [
   /chest.{0,10}(pain|tight|pressure|heaviness)/i,
   /difficulty.{0,10}breath/i,

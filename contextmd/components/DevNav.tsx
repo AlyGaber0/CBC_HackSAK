@@ -188,7 +188,7 @@ export default function DevNav() {
       });
       const body: { tier?: number; status?: string; error?: string } = await res.json();
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
-      log(true, `Triage complete — Tier ${body.tier}, status: ${body.status}`);
+      log(true, `Triage complete:Tier ${body.tier}, status: ${body.status}`);
     } catch (e) {
       log(false, `Triage failed: ${String(e)}`);
     } finally {
@@ -209,7 +209,7 @@ export default function DevNav() {
       });
       const body: { id?: string; status?: string; error?: string } = await res.json();
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
-      log(true, `Claimed by ${pid} — status: ${body.status}`);
+      log(true, `Claimed by ${pid}:status: ${body.status}`);
     } catch (e) {
       log(false, `Claim failed: ${String(e)}`);
     } finally {
@@ -229,7 +229,7 @@ export default function DevNav() {
       });
       const body: { id?: string; outcome?: string; error?: string } = await res.json();
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
-      log(true, `Response submitted — outcome: ${body.outcome}`);
+      log(true, `Response submitted:outcome: ${body.outcome}`);
     } catch (e) {
       log(false, `Respond failed: ${String(e)}`);
     } finally {
@@ -398,7 +398,7 @@ export default function DevNav() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <IdRow label="Patient">
                   <span style={{ color: '#e2e8f0', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {patientId ? patientId.slice(0, 18) + '…' : '—'}
+                    {patientId ? patientId.slice(0, 18) + '…' : 'none'}
                   </span>
                   <SmallBtn onClick={newPatient}>New</SmallBtn>
                 </IdRow>
