@@ -8,18 +8,18 @@ import type { IntakeFormState, TriageAIResult } from '@/lib/types';
 export const maxDuration = 60;
 
 // ---------------------------------------------------------------------------
-// HARDCODED DEMO RESULTS — bypasses Claude entirely when demoKey is present
+// HARDCODED DEMO RESULTS - bypasses Claude entirely when demoKey is present
 // ---------------------------------------------------------------------------
 const DEMO_RESULTS: Record<string, TriageAIResult> = {
   tier0_sunburn: {
     tier: 0,
     navigationAction: 'self_care',
     brief:
-      'Patient reports mild sunburn (pain 2/10) on shoulders from yesterday. Already improving with aloe vera. No blisters, no systemic symptoms. Classic Tier 0 — self-manageable.',
+      'Patient reports mild sunburn (pain 2/10) on shoulders from yesterday. Already improving with aloe vera. No blisters, no systemic symptoms. Classic Tier 0 - self-manageable.',
     tierReasoning:
       'Pain severity 2/10, symptoms improving, no red flags. NIH/AAD guidelines support home management for minor sunburn.',
     selfCareResponse:
-      'Your sunburn sounds mild and is already improving — great sign!\n\n**What to do at home:**\n- Continue applying aloe vera gel or a fragrance-free moisturiser every few hours\n- Stay well-hydrated; sunburn draws fluid to the skin surface\n- Ibuprofen (400 mg every 6–8 h with food) or acetaminophen (500–1000 mg every 6 h) is safe and effective for sunburn discomfort\n- Avoid further sun exposure until fully healed; wear SPF 30+ going forward\n- Cool (not ice-cold) compresses can reduce heat and pain\n\n**Watch for and seek care if:**\n- Blistering develops over a large area\n- Fever above 38.5 °C, chills, or nausea\n- Severe pain not controlled by OTC medication\n\nThis is triage navigation guidance, not a medical diagnosis.',
+      'Your sunburn sounds mild and is already improving - great sign!\n\n**What to do at home:**\n- Continue applying aloe vera gel or a fragrance-free moisturiser every few hours\n- Stay well-hydrated; sunburn draws fluid to the skin surface\n- Ibuprofen (400 mg every 6-8 h with food) or acetaminophen (500-1000 mg every 6 h) is safe and effective for sunburn discomfort\n- Avoid further sun exposure until fully healed; wear SPF 30+ going forward\n- Cool (not ice-cold) compresses can reduce heat and pain\n\n**Watch for and seek care if:**\n- Blistering develops over a large area\n- Fever above 38.5 °C, chills, or nausea\n- Severe pain not controlled by OTC medication\n\nThis is triage navigation guidance, not a medical diagnosis.',
     medicationFlags: [],
     nihSources: [],
   },
@@ -38,9 +38,9 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
     tier: 2,
     navigationAction: 'walkin_soon',
     brief:
-      'Patient reports severe lower back pain (8/10) radiating down the left leg after lifting 3 days ago, progressively worsening, waking from sleep. On Lisinopril and Ibuprofen; allergic to Penicillin. ⚠️ Concurrent Lisinopril + Ibuprofen — NSAIDs can reduce antihypertensive effect and increase AKI risk.',
+      'Patient reports severe lower back pain (8/10) radiating down the left leg after lifting 3 days ago, progressively worsening, waking from sleep. On Lisinopril and Ibuprofen; allergic to Penicillin. Warning: Concurrent Lisinopril + Ibuprofen - NSAIDs can reduce antihypertensive effect and increase AKI risk.',
     tierReasoning:
-      'Pain 8/10, radicular pattern, progressive worsening, sleep disruption — features consistent with disc herniation requiring same-day or next-day assessment. Not Tier 3 as no bowel/bladder involvement reported.',
+      'Pain 8/10, radicular pattern, progressive worsening, sleep disruption - features consistent with disc herniation requiring same-day or next-day assessment. Not Tier 3 as no bowel/bladder involvement reported.',
     selfCareResponse: null,
     medicationFlags: [
       {
@@ -56,16 +56,16 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
     tier: 2,
     navigationAction: 'walkin_soon',
     brief:
-      'Patient on Lisinopril 10 mg reports 2-week persistent dry nocturnal cough with no phlegm. ⚠️ ACE inhibitor-induced cough affects ~10–15% of patients on Lisinopril — highly likely aetiology here.',
+      'Patient on Lisinopril 10 mg reports 2-week persistent dry nocturnal cough with no phlegm. Warning: ACE inhibitor-induced cough affects ~10-15% of patients on Lisinopril - highly likely aetiology here.',
     tierReasoning:
       'Stable symptom, no red flags, but 2-week duration and likely medication side-effect warrants physician review for potential switch to ARB.',
     selfCareResponse: null,
     medicationFlags: [
       {
-        flag: 'Lisinopril — ACE inhibitor cough',
+        flag: 'Lisinopril - ACE inhibitor cough',
         severity: 'moderate',
         detail:
-          'Persistent dry cough is a well-documented side effect of ACE inhibitors affecting 10–15% of patients. Consider switching to an ARB (e.g. candesartan) if cough confirmed as drug-induced.',
+          'Persistent dry cough is a well-documented side effect of ACE inhibitors affecting 10-15% of patients. Consider switching to an ARB (e.g. candesartan) if cough confirmed as drug-induced.',
       },
     ],
     nihSources: [],
@@ -74,7 +74,7 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
     tier: 3,
     navigationAction: 'er_now',
     brief:
-      'Diabetic patient reports rapidly spreading redness, swelling, and red streaks extending up the right leg from foot. Pain 9/10. Fever present. Onset yesterday, rapidly worsening. ⚠️ Red streaks (lymphangitis) + fever + diabetes = suspected necrotising fasciitis or severe cellulitis. EMERGENCY.',
+      'Diabetic patient reports rapidly spreading redness, swelling, and red streaks extending up the right leg from foot. Pain 9/10. Fever present. Onset yesterday, rapidly worsening. Warning: Red streaks (lymphangitis) + fever + diabetes = suspected necrotising fasciitis or severe cellulitis. EMERGENCY.',
     tierReasoning:
       'Red streaks (lymphangitis), fever, rapid progression over <24 h in a diabetic patient are hallmarks of a limb-threatening or life-threatening soft-tissue infection. Immediate ED assessment required.',
     selfCareResponse: null,
@@ -87,7 +87,7 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
     brief:
       'Patient reports classic UTI symptoms: dysuria, urinary frequency, lower abdominal discomfort, 2-day duration, worsening. No fever, no flank pain. No medications or allergies listed. Self-reports prior UTI episodes.',
     tierReasoning:
-      'Uncomplicated UTI in Quebec: pharmacists can prescribe nitrofurantoin or trimethoprim under Bill 31 (since 2023). No systemic symptoms suggesting pyelonephritis. Tier 2 — pharmacist is the appropriate first contact.',
+      'Uncomplicated UTI in Quebec: pharmacists can prescribe nitrofurantoin or trimethoprim under Bill 31 (since 2023). No systemic symptoms suggesting pyelonephritis. Tier 2 - pharmacist is the appropriate first contact.',
     selfCareResponse: null,
     medicationFlags: [],
     nihSources: [],
@@ -97,9 +97,9 @@ const DEMO_RESULTS: Record<string, TriageAIResult> = {
 function buildFallbackSelfCare(intake: IntakeFormState): string {
   return `Based on the information you've provided, your symptoms appear to be mild and self-manageable at home.
 
-For your ${intake.symptomType.toLowerCase()} affecting your ${intake.bodyLocation.toLowerCase()}, we recommend rest, staying hydrated, and monitoring your symptoms over the next 24–48 hours. Over-the-counter remedies appropriate for your condition may help with discomfort.
+For your ${intake.symptomType.toLowerCase()} affecting your ${intake.bodyLocation.toLowerCase()}, we recommend rest, staying hydrated, and monitoring your symptoms over the next 24-48 hours. Over-the-counter remedies appropriate for your condition may help with discomfort.
 
-Watch for any of the following and seek care if they occur: symptoms that worsen significantly, a fever above 38.5°C, new or spreading symptoms, or anything that feels unusual or alarming to you.
+Watch for any of the following and seek care if they occur: symptoms that worsen significantly, a fever above 38.5 degrees C, new or spreading symptoms, or anything that feels unusual or alarming to you.
 
 This is triage navigation guidance, not a medical diagnosis. If your symptoms worsen or you have concerns, contact a healthcare provider.`;
 }
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // ---------------------------------------------------------------------------
-    // DEMO SHORTCUT — skip Claude entirely
+    // DEMO SHORTCUT - skip Claude entirely
     // ---------------------------------------------------------------------------
     if (demoKey && DEMO_RESULTS[demoKey]) {
       const result = DEMO_RESULTS[demoKey];
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ---------------------------------------------------------------------------
-    // REAL PATH — Claude + NIH
+    // REAL PATH - Claude + NIH
     // ---------------------------------------------------------------------------
     const medications = intake.medications.split(',').map(s => s.trim()).filter(Boolean);
     const nihPromise = gatherNihContext({
