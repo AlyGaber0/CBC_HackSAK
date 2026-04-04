@@ -2,7 +2,7 @@
 
 Asynchronous medical triage navigation for the 2 million Quebecers without a family doctor.
 
-Built for the **Claude Builders Hackathon at McGill — April 4, 2026** · Biology & Physical Health track · PCare+ Sub-Challenge
+Built for the **Claude Builders Hackathon at McGill — April 4, 2026** · Biology & Physical Health track
 
 ---
 
