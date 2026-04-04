@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
       allergies:           d.allergies?.split(',').map(s => s.trim()).filter(Boolean) ?? [],
       photo_count:         d.photoCount,
       photo_names:         d.photoNames,
+      photo_storage_keys:  d.photoStorageKeys,
     })
     .select()
     .single();

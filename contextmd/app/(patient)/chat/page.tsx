@@ -17,6 +17,12 @@ interface ChatMessage {
 
 type InputMode = 'text' | 'select' | 'multiselect' | 'date' | 'slider'
 
+interface UploadedPhoto {
+  key: string
+  name: string
+  preview: string  // object URL for local thumbnail display
+}
+
 interface QuestionDef {
   key: string
   botMessage: string
@@ -164,6 +170,8 @@ export default function ChatPage() {
   const [summaryNote, setSummaryNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showEmergency, setShowEmergency] = useState(false)
+  const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([])
+  const [uploadingCount, setUploadingCount] = useState(0)
 
   // Wait for language to load from localStorage before initializing messages
   useEffect(() => {
@@ -285,6 +293,37 @@ export default function ChatPage() {
     }
   }
 
+  async function handlePhotoFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    const remaining = 5 - uploadedPhotos.length
+    if (remaining <= 0) return
+    const toUpload = Array.from(files).slice(0, remaining)
+    setUploadingCount(prev => prev + toUpload.length)
+    await Promise.all(toUpload.map(async (file) => {
+      const preview = URL.createObjectURL(file)
+      const fd = new FormData()
+      fd.append('file', file)
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: fd })
+        if (!res.ok) throw new Error()
+        const { key, name } = await res.json() as { key: string; name: string }
+        setUploadedPhotos(prev => [...prev, { key, name, preview }])
+      } catch {
+        URL.revokeObjectURL(preview)
+      } finally {
+        setUploadingCount(prev => prev - 1)
+      }
+    }))
+  }
+
+  function removePhoto(key: string) {
+    setUploadedPhotos(prev => {
+      const photo = prev.find(p => p.key === key)
+      if (photo) URL.revokeObjectURL(photo.preview)
+      return prev.filter(p => p.key !== key)
+    })
+  }
+
   function submitSummaryNote() {
     const note = summaryNote.trim()
     if (!note) return
@@ -327,8 +366,9 @@ export default function ChatPage() {
         timelineChanged: answers.timelineChanged as string,
         painSeverity: answers.painSeverity,
         associatedSymptoms: answers.associatedSymptoms,
-        photoCount: 0,
-        photoNames: [],
+        photoCount: uploadedPhotos.length,
+        photoNames: uploadedPhotos.map(p => p.name),
+        photoStorageKeys: uploadedPhotos.map(p => p.key),
         freeText: answers.freeText,
         patientQuestions: [answers.q1 ?? '', answers.q2 ?? '', ''],
         medicalConditions: answers.medicalConditions,
@@ -586,6 +626,76 @@ export default function ChatPage() {
                 <span style={{ color: '#1e293b', fontSize: 13, fontWeight: 500, flex: 1 }}>{value}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Photo upload (summary only) */}
+        {inSummary && (
+          <div style={{ marginLeft: 36 }}>
+            <div style={{
+              background: 'white', borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(37,99,235,0.1)',
+              padding: '12px 16px',
+            }}>
+              <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                {tc.photos ?? 'Photos (optional)'}
+              </p>
+              <p style={{ margin: '0 0 10px', fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
+                {tc.photosHint ?? 'Attach up to 5 photos of your symptoms if visually relevant. Max 5 MB per photo.'}
+              </p>
+
+              {/* Thumbnails */}
+              {uploadedPhotos.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                  {uploadedPhotos.map(photo => (
+                    <div key={photo.key} style={{ position: 'relative', width: 72, height: 72 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.preview}
+                        alt={photo.name}
+                        style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: '1.5px solid #bfdbfe' }}
+                      />
+                      <button
+                        onClick={() => removePhoto(photo.key)}
+                        style={{
+                          position: 'absolute', top: -6, right: -6,
+                          width: 18, height: 18, background: '#ef4444',
+                          border: 'none', borderRadius: '50%', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 10, color: 'white', fontWeight: 700, lineHeight: 1,
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {uploadingCount > 0 && (
+                    <div style={{ width: 72, height: 72, background: '#f1f5f9', borderRadius: 8, border: '1.5px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#94a3b8' }}>
+                      ...
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* File picker */}
+              {uploadedPhotos.length < 5 && (
+                <label style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '7px 14px', background: '#eff6ff',
+                  border: '1.5px dashed #93c5fd', borderRadius: 8,
+                  fontSize: 12, color: '#2563eb', cursor: 'pointer', fontWeight: 600,
+                }}>
+                  + {tc.addPhotos ?? 'Add photos'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={e => handlePhotoFiles(e.target.files)}
+                  />
+                </label>
+              )}
+            </div>
           </div>
         )}
 

@@ -162,6 +162,9 @@ export interface Translations {
       tooShort: string;
       required: string;
     };
+    photos: string;
+    photosHint: string;
+    addPhotos: string;
     welcome: string;
   };
   intake: {
@@ -383,6 +386,9 @@ export const translations: Record<Lang, Translations> = {
         tooShort: 'Please give a bit more detail so the provider can help you effectively.',
         required: "I need this to properly assess your case — could you fill that in for me?",
       },
+      photos: 'Photos (optional)',
+      photosHint: 'Attach up to 5 photos of your symptoms if visually relevant. Max 5 MB per photo.',
+      addPhotos: 'Add photos',
       welcome: "Hi! I'm going to ask you a few questions about your symptoms so we can connect you with the right care. Take your time — there's no rush.",
     },
     intake: {
@@ -624,6 +630,9 @@ export const translations: Record<Lang, Translations> = {
         tooShort: 'Veuillez donner un peu plus de détails pour que le professionnel puisse vous aider efficacement.',
         required: "J'ai besoin de cette information pour évaluer votre dossier correctement. Pourriez-vous remplir ce champ?",
       },
+      photos: 'Photos (facultatif)',
+      photosHint: "Joignez jusqu'à 5 photos de vos symptômes si visuellement pertinent. Max 5 Mo par photo.",
+      addPhotos: 'Ajouter des photos',
       welcome: "Bonjour! Je vais vous poser quelques questions sur vos symptômes afin de vous orienter vers les bons soins. Prenez votre temps, il n'y a pas de presse.",
     },
     intake: {
