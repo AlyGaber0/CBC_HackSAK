@@ -8,7 +8,7 @@ export async function sendCaseConfirmation(email: string, caseId: string): Promi
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   await resend.emails.send({
-    from: `Triaje <${FROM}>`,
+    from: `RéponSanté <${FROM}>`,
     to: email,
     subject: 'Your case has been submitted',
     text: [
@@ -22,7 +22,7 @@ export async function sendCaseConfirmation(email: string, caseId: string): Promi
       'You will receive another email once a provider has responded.',
       '',
       '---',
-      'Triaje does not provide medical diagnosis or treatment. If you are experiencing a medical emergency, call 911.',
+      'RéponSanté does not provide medical diagnosis or treatment. If you are experiencing a medical emergency, call 911.',
     ].join('\n'),
   })
 }
@@ -32,7 +32,7 @@ export async function sendResponseNotification(email: string, caseId: string): P
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   await resend.emails.send({
-    from: `Triaje <${FROM}>`,
+    from: `RéponSanté <${FROM}>`,
     to: email,
     subject: 'A provider has responded to your case',
     text: [
@@ -44,7 +44,7 @@ export async function sendResponseNotification(email: string, caseId: string): P
       `${APP_URL}/status/${caseId}`,
       '',
       '---',
-      'Triaje does not provide medical diagnosis or treatment. If you are experiencing a medical emergency, call 911.',
+      'RéponSanté does not provide medical diagnosis or treatment. If you are experiencing a medical emergency, call 911.',
     ].join('\n'),
   })
 }

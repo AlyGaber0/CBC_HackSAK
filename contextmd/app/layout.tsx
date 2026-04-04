@@ -7,7 +7,7 @@ import DevNav from '@/components/DevNav';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Triaje: Async Medical Triage',
+  title: 'RéponSanté: Async Medical Triage',
   description: 'Structured symptom intake and triage navigation for patients without a family doctor.',
 };
 

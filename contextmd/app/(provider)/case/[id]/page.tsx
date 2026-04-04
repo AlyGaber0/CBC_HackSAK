@@ -405,17 +405,41 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
           {caseData.photo_count > 0 && (
             <Card>
               <SectionLabel>{pc.photos} ({caseData.photo_count})</SectionLabel>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {caseData.photo_names?.map((name, i) => (
-                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <div style={{ width: 72, height: 72, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Camera size={18} color="#94a3b8" />
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {(caseData.photo_storage_keys ?? []).map((key, i) => {
+                  const url = photoUrls[key];
+                  const name = caseData.photo_names?.[i] ?? `photo-${i + 1}`;
+                  return (
+                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      {url ? (
+                        <a href={url} target="_blank" rel="noopener noreferrer" title={name}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt={name}
+                            style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, border: '1.5px solid #bfdbfe', cursor: 'pointer', display: 'block' }}
+                          />
+                        </a>
+                      ) : (
+                        <div style={{ width: 96, height: 96, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Camera size={22} color="#94a3b8" />
+                        </div>
+                      )}
+                      <span style={{ fontSize: 10, color: '#94a3b8', maxWidth: 96, textAlign: 'center', wordBreak: 'break-word' }}>{name}</span>
                     </div>
-                    <span style={{ fontSize: 10, color: '#94a3b8', maxWidth: 72, textAlign: 'center', wordBreak: 'break-word' }}>{name}</span>
+                  );
+                })}
+                {/* Fallback for legacy cases that have photo_names but no storage keys */}
+                {(caseData.photo_storage_keys ?? []).length === 0 && caseData.photo_names?.map((name, i) => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{ width: 96, height: 96, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Camera size={22} color="#94a3b8" />
+                    </div>
+                    <span style={{ fontSize: 10, color: '#94a3b8', maxWidth: 96, textAlign: 'center', wordBreak: 'break-word' }}>{name}</span>
                   </div>
                 ))}
               </div>
-              <p style={{ fontSize: 11, color: '#94a3b8', margin: '10px 0 0' }}>{pc.photoPreview}</p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: '10px 0 0', lineHeight: 1.5 }}>{pc.photoPreview}</p>
             </Card>
           )}
         </div>

@@ -18,10 +18,10 @@ function PatientNav() {
   return (
     <div style={{ background: '#0f2744', padding: '13px 24px', display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 20, height: 20, background: '#3b82f6', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <div style={{ width: 8, height: 8, background: 'white', borderRadius: '50%', opacity: 0.9 }} />
+        <div style={{ width: 24, height: 24, background: '#3b82f6', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'white', letterSpacing: '-0.5px' }}>RS</span>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.3px' }}>triaje</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.3px' }}>RéponSanté</span>
       </div>
       <span style={{ fontSize: 11, color: '#334155', margin: '0 4px' }}>|</span>
       <span style={{ fontSize: 11.5, color: '#7dd3fc', fontWeight: 400 }}>{t.common.navSubtitle}</span>

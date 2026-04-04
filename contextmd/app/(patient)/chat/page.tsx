@@ -597,7 +597,7 @@ export default function ChatPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}>
-                <span style={{ color: 'white', fontSize: 10, fontWeight: 800 }}>T</span>
+                <span style={{ color: 'white', fontSize: 9, fontWeight: 800, letterSpacing: '-0.5px' }}>RS</span>
               </div>
             )}
             <div style={{
@@ -703,7 +703,7 @@ export default function ChatPage() {
         {isTyping && (
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
             <div style={{ width: 28, height: 28, background: '#2563eb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: 'white', fontSize: 10, fontWeight: 800 }}>T</span>
+              <span style={{ color: 'white', fontSize: 9, fontWeight: 800, letterSpacing: '-0.5px' }}>RS</span>
             </div>
             <div style={{ padding: '12px 16px', borderRadius: '4px 18px 18px 18px', background: 'white', boxShadow: '0 1px 4px rgba(37,99,235,0.1)', display: 'flex', gap: 5, alignItems: 'center' }}>
               {[0, 1, 2].map(i => (
