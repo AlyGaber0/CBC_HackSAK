@@ -86,6 +86,8 @@ export default function IntakePage() {
   const [showTier4Modal, setShowTier4Modal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [customSymptomInput, setCustomSymptomInput] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   function goNext() {
     if (step === 2 && checkAnyTier4([store.symptomDescription])) {
@@ -350,7 +352,7 @@ export default function IntakePage() {
 
             <label style={s.label}>Associated symptoms <span style={{ fontWeight: 400, color: '#94a3b8' }}>(select all that apply)</span></label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {ASSOCIATED_SYMPTOMS.map(sym => {
+              {[...ASSOCIATED_SYMPTOMS, ...store.associatedSymptoms.filter(s => !ASSOCIATED_SYMPTOMS.includes(s))].map(sym => {
                 const selected = store.associatedSymptoms.includes(sym);
                 return (
                   <button
@@ -373,6 +375,89 @@ export default function IntakePage() {
                   </button>
                 );
               })}
+              {showCustomInput ? (
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const trimmed = customSymptomInput.trim();
+                    if (trimmed && !store.associatedSymptoms.includes(trimmed)) {
+                      store.update({ associatedSymptoms: [...store.associatedSymptoms, trimmed] });
+                    }
+                    setCustomSymptomInput('');
+                    setShowCustomInput(false);
+                  }}
+                  style={{ display: 'flex', gap: 6, alignItems: 'center' }}
+                >
+                  <input
+                    autoFocus
+                    type="text"
+                    value={customSymptomInput}
+                    onChange={e => setCustomSymptomInput(e.target.value)}
+                    placeholder="e.g. Chest tightness"
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 20,
+                      fontSize: 12,
+                      border: '1.5px solid #0f2744',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      color: '#1e293b',
+                      width: 150,
+                    }}
+                    onKeyDown={e => { if (e.key === 'Escape') { setShowCustomInput(false); setCustomSymptomInput(''); } }}
+                  />
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: '#0f2744',
+                      color: 'white',
+                    }}
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowCustomInput(false); setCustomSymptomInput(''); }}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      border: '1.5px solid #e2e8f0',
+                      background: '#f8fafc',
+                      color: '#475569',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setShowCustomInput(true)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    border: '1.5px dashed #94a3b8',
+                    background: 'transparent',
+                    color: '#64748b',
+                  }}
+                >
+                  + Add your own
+                </button>
+              )}
             </div>
             {navRow(true)}
           </div>
