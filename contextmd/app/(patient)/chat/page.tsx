@@ -638,10 +638,10 @@ export default function ChatPage() {
               padding: '12px 16px',
             }}>
               <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                {tc.photos ?? 'Photos (optional)'}
+                {tc.photos}
               </p>
               <p style={{ margin: '0 0 10px', fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
-                {tc.photosHint ?? 'Attach up to 5 photos of your symptoms if visually relevant. Max 5 MB per photo.'}
+                {tc.photosHint}
               </p>
 
               {/* Thumbnails */}
@@ -685,7 +685,7 @@ export default function ChatPage() {
                   border: '1.5px dashed #93c5fd', borderRadius: 8,
                   fontSize: 12, color: '#2563eb', cursor: 'pointer', fontWeight: 600,
                 }}>
-                  + {tc.addPhotos ?? 'Add photos'}
+                  + {tc.addPhotos}
                   <input
                     type="file"
                     accept="image/*"

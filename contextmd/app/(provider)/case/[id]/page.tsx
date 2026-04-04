@@ -76,6 +76,7 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
   const { lang } = useLang();
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [translated, setTranslated] = useState<Record<string, string> | null>(null);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<TriageOutcome | ''>('');
 
   // SBAR fields
@@ -106,6 +107,25 @@ export default function ProviderCasePage({ params }: { params: Promise<{ id: str
       .then(r => r.json())
       .then(setCaseData);
   }, [id]);
+
+  useEffect(() => {
+    const keys = caseData?.photo_storage_keys ?? [];
+    if (keys.length === 0) return;
+    Promise.all(
+      keys.map(key =>
+        providerFetch(`/api/photos?key=${encodeURIComponent(key)}`)
+          .then(r => r.ok ? r.json() as Promise<{ url: string }> : null)
+          .then(data => data ? [key, data.url] as [string, string] : null)
+          .catch(() => null)
+      )
+    ).then(results => {
+      const map: Record<string, string> = {};
+      for (const entry of results) {
+        if (entry) map[entry[0]] = entry[1];
+      }
+      setPhotoUrls(map);
+    });
+  }, [caseData]);
 
   useEffect(() => {
     if (!caseData || lang === 'en') { setTranslated(null); return; }
