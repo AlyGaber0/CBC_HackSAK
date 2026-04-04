@@ -1,5 +1,6 @@
 'use client';
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { Case, Response, NihSource, TriageOutcome, NavigationAction } from '@/lib/types';
 
 const OUTCOME_CONFIG: Record<TriageOutcome, { label: string; color: string; bg: string; border: string }> = {
@@ -23,11 +24,16 @@ const DISCLAIMER =
 
 export default function StatusPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  // hint from DemoPanel so we don't show a stale loading state
+  const statusHint = searchParams.get('status');
+
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [nihOpen, setNihOpen] = useState(false);
+  const stoppedRef = useRef(false);
 
   useEffect(() => {
-    let stopped = false;
+    stoppedRef.current = false;
 
     async function load() {
       try {
@@ -35,54 +41,60 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
         if (!res.ok) return;
         const data: Case = await res.json();
         setCaseData(data);
-        if (data.status === 'response_ready') stopped = true;
+        // stop polling once we have a terminal state
+        if (data.status === 'response_ready' || data.status === 'escalated') {
+          stoppedRef.current = true;
+        }
       } catch {
-        // silently retry next interval
+        // silently retry
       }
     }
 
     load();
-    const interval = setInterval(() => { if (!stopped) load(); }, 5000);
+    const interval = setInterval(() => {
+      if (!stoppedRef.current) load();
+    }, 3000); // poll every 3s for snappier demo
     return () => clearInterval(interval);
   }, [id]);
 
   // ── Loading ────────────────────────────────────────────────────
-  if (!caseData) {
+  // If we have a status hint from DemoPanel, don't show the loading spinner —
+  // show the appropriate shell immediately and let the first poll fill in data.
+  const effectiveStatus = caseData?.status ?? statusHint ?? null;
+
+  if (!effectiveStatus) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 16px' }}>
         <div style={{ maxWidth: 520, width: '100%', textAlign: 'center' }}>
-          <div style={{ width: 32, height: 32, border: '3px solid #e2e8f0', borderTopColor: '#0f2744', borderRadius: '50%', animation: 'spin 0.9s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ fontSize: 13, color: '#94a3b8' }}>Loading your case…</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <Spinner size={32} />
+          <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 16 }}>Loading your case…</p>
         </div>
       </div>
     );
   }
 
-  // ── Processing (AI running — brief state) ─────────────────────
-  if (caseData.status === 'processing') {
+  // ── Processing ────────────────────────────────────────────────
+  if (effectiveStatus === 'processing') {
     return (
       <StatusShell>
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '32px 24px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)', textAlign: 'center' }}>
-          <div style={{ width: 32, height: 32, border: '3px solid #e2e8f0', borderTopColor: '#0f2744', borderRadius: '50%', animation: 'spin 0.9s linear infinite', margin: '0 auto 18px' }} />
+          <Spinner size={32} style={{ margin: '0 auto 18px' }} />
           <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Analysing your symptoms</h2>
           <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.65 }}>
             Our AI is reviewing your intake and cross-referencing NIH clinical data. This takes about 15–30 seconds.
           </p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </StatusShell>
     );
   }
 
   // ── Awaiting / In Review ──────────────────────────────────────
-  if (caseData.status === 'awaiting_review' || caseData.status === 'in_review') {
-    const inReview = caseData.status === 'in_review';
-    const navAction = caseData.navigation_action;
-    const nav = navAction ? NAV_CONFIG[navAction] : null;
+  if (effectiveStatus === 'awaiting_review' || effectiveStatus === 'in_review') {
+    const inReview = effectiveStatus === 'in_review';
+    const navAction = caseData?.navigation_action;
+    const nav = navAction ? NAV_CONFIG[navAction as NavigationAction] : null;
     return (
       <StatusShell>
-        {/* Navigation action card — shown as soon as AI has run */}
         {nav && (
           <div style={{ background: nav.bg, border: `1.5px solid ${nav.border}`, borderRadius: 10, padding: '18px 20px', marginBottom: 14, boxShadow: '0 2px 8px rgba(15,39,68,0.04)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -94,137 +106,88 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
             </div>
           </div>
         )}
-
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '24px 22px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)' }}>
-          {/* Pulse badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '5px 10px', marginBottom: 16 }}>
             <span style={{ width: 7, height: 7, background: '#22c55e', borderRadius: '50%', animation: 'pulse 1.5s ease-in-out infinite', display: 'inline-block' }} />
             <span style={{ fontSize: 11, fontWeight: 600, color: '#15803d' }}>
               {inReview ? 'Provider reviewing' : 'Case received'}
             </span>
           </div>
-
           <h2 style={{ margin: '0 0 10px', fontSize: 17, fontWeight: 700, color: '#0f2744', letterSpacing: '-0.3px' }}>
             {inReview ? 'A provider is reviewing your case' : 'Your case is in the provider queue'}
           </h2>
-          <p style={{ margin: '0', fontSize: 13.5, color: '#475569', lineHeight: 1.7 }}>
+          <p style={{ margin: 0, fontSize: 13.5, color: '#475569', lineHeight: 1.7 }}>
             {inReview
-              ? 'A licensed provider has picked up your case and is composing a response. You\'ll see it here as soon as they submit.'
+              ? "A licensed provider has picked up your case and is composing a response. You'll see it here as soon as they submit."
               : 'Your symptoms have been organised into a clinical brief and added to the provider queue. A licensed provider will review it and write a response.'}
           </p>
-
           <div style={{ height: 1, background: '#f1f5f9', margin: '18px 0' }} />
-
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#94a3b8' }}>
             <span>Most responses arrive within a few hours</span>
-            <span>Updates automatically</span>
+            <span>Updates automatically every 3s</span>
           </div>
         </div>
-
         <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }`}</style>
       </StatusShell>
     );
   }
 
-  // ── Response Ready — Q5: A single scrollable card ─────────────
-  if (caseData.status === 'response_ready') {
-    const response: Response | undefined = caseData.responses?.[0];
-    // Response row not yet committed — keep polling
+  // ── Response Ready ────────────────────────────────────────────
+  if (effectiveStatus === 'response_ready') {
+    const response: Response | undefined = caseData?.responses?.[0];
+
+    // DB write may lag by 1 poll cycle — keep showing spinner until row arrives
     if (!response) {
       return (
         <StatusShell>
           <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '32px 24px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)', textAlign: 'center' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid #e2e8f0', borderTopColor: '#0f2744', borderRadius: '50%', animation: 'spin 0.9s linear infinite', margin: '0 auto 18px' }} />
+            <Spinner size={32} style={{ margin: '0 auto 18px' }} />
             <h2 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: '#0f2744' }}>Preparing your response</h2>
             <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Almost there — loading your care guidance.</p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         </StatusShell>
       );
     }
 
-    const cfg = OUTCOME_CONFIG[response.outcome];
+    const cfg = response.outcome && OUTCOME_CONFIG[response.outcome]
+      ? OUTCOME_CONFIG[response.outcome]
+      : OUTCOME_CONFIG.self_manageable;
     const nihs: NihSource[] = response.nih_sources ?? [];
     const hasSBAR = response.sbar_situation || response.sbar_background || response.sbar_assessment || response.sbar_recommendation;
 
     return (
       <StatusShell>
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 10, padding: '24px 22px', boxShadow: '0 2px 8px rgba(15,39,68,0.06)' }}>
-
           {/* Outcome badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: cfg.bg, border: `1.5px solid ${cfg.border}`, borderRadius: 7, padding: '7px 13px', marginBottom: 18 }}>
             <span style={{ width: 8, height: 8, background: cfg.color, borderRadius: '50%', display: 'inline-block' }} />
             <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
           </div>
 
-          {/* SBAR structured response or legacy message */}
+          {/* SBAR or legacy message */}
           {hasSBAR ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
-              {response.sbar_situation && (
-                <div>
-                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Situation</p>
-                  <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.75 }}>{response.sbar_situation}</p>
-                </div>
-              )}
-              {response.sbar_background && (
-                <div>
-                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Background</p>
-                  <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.75 }}>{response.sbar_background}</p>
-                </div>
-              )}
-              {response.sbar_assessment && (
-                <div>
-                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Assessment</p>
-                  <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.75 }}>{response.sbar_assessment}</p>
-                </div>
-              )}
-              {response.sbar_recommendation && (
-                <div>
-                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Recommendation</p>
-                  <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.75, fontWeight: 600 }}>{response.sbar_recommendation}</p>
-                </div>
-              )}
+              {response.sbar_situation && <SbarSection label="Situation" text={response.sbar_situation} />}
+              {response.sbar_background && <SbarSection label="Background" text={response.sbar_background} />}
+              {response.sbar_assessment && <SbarSection label="Assessment" text={response.sbar_assessment} />}
+              {response.sbar_recommendation && <SbarSection label="Recommendation" text={response.sbar_recommendation} bold />}
             </div>
           ) : (
-            /* Fallback for legacy responses without SBAR */
             <p style={{ margin: '0 0 20px', fontSize: 14, color: '#1e293b', lineHeight: 1.75 }}>
               {response.message}
             </p>
           )}
 
-          {/* Conditional fields */}
-          {response.followup_days != null && (
-            <Detail label="Follow up in" value={`${response.followup_days} day${response.followup_days !== 1 ? 's' : ''}`} />
-          )}
-          {response.watch_for && (
-            <Detail label="Watch for" value={response.watch_for} />
-          )}
-          {response.provider_type && (
-            <Detail label="See a" value={`${response.provider_type}${response.timeframe ? ` within ${response.timeframe}` : ''}`} />
-          )}
-          {response.urgency_note && (
-            <Detail label="Urgent action" value={response.urgency_note} accent />
-          )}
+          {response.followup_days != null && <Detail label="Follow up in" value={`${response.followup_days} day${response.followup_days !== 1 ? 's' : ''}`} />}
+          {response.watch_for && <Detail label="Watch for" value={response.watch_for} />}
+          {response.provider_type && <Detail label="See a" value={`${response.provider_type}${response.timeframe ? ` within ${response.timeframe}` : ''}`} />}
+          {response.urgency_note && <Detail label="Urgent action" value={response.urgency_note} accent />}
 
-          {/* NIH sources — collapsible */}
           {nihs.length > 0 && (
             <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', marginTop: 20 }}>
               <button
                 onClick={() => setNihOpen(o => !o)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '11px 14px',
-                  background: '#f8fafc',
-                  border: 'none',
-                  fontFamily: 'inherit',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: '#475569',
-                  cursor: 'pointer',
-                }}
+                style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 14px', background: '#f8fafc', border: 'none', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: '#475569', cursor: 'pointer' }}
               >
                 <span>NIH Sources ({nihs.length})</span>
                 <span style={{ fontSize: 10, color: '#94a3b8' }}>{nihOpen ? '▲' : '▼'}</span>
@@ -233,12 +196,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                 <div style={{ borderTop: '1px solid #f1f5f9', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {nihs.map((src, i) => (
                     <div key={i}>
-                      <a
-                        href={src.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ fontSize: 12.5, fontWeight: 600, color: '#1d4ed8', textDecoration: 'none', display: 'block', marginBottom: 2 }}
-                      >
+                      <a href={src.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12.5, fontWeight: 600, color: '#1d4ed8', textDecoration: 'none', display: 'block', marginBottom: 2 }}>
                         {src.title} ↗
                       </a>
                       <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', lineHeight: 1.55 }}>{src.excerpt}</p>
@@ -249,11 +207,8 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
-          {/* Disclaimer — always shown */}
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
-            <p style={{ margin: 0, fontSize: 11.5, color: '#94a3b8', lineHeight: 1.6 }}>
-              {DISCLAIMER}
-            </p>
+            <p style={{ margin: 0, fontSize: 11.5, color: '#94a3b8', lineHeight: 1.6 }}>{DISCLAIMER}</p>
           </div>
         </div>
       </StatusShell>
@@ -263,7 +218,23 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
   return null;
 }
 
-// ── Small shared components ────────────────────────────────────
+// ── Shared helpers ─────────────────────────────────────────────
+
+function Spinner({ size = 24, style = {} }: { size?: number; style?: React.CSSProperties }) {
+  return (
+    <>
+      <div style={{
+        width: size, height: size,
+        border: `${size > 20 ? 3 : 2}px solid #e2e8f0`,
+        borderTopColor: '#0f2744',
+        borderRadius: '50%',
+        animation: 'spin 0.9s linear infinite',
+        ...style,
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </>
+  );
+}
 
 function StatusShell({ children }: { children: React.ReactNode }) {
   return (
@@ -278,21 +249,20 @@ function StatusShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function SbarSection({ label, text, bold = false }: { label: string; text: string; bold?: boolean }) {
+  return (
+    <div>
+      <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 700, color: '#64748b', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{label}</p>
+      <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.75, fontWeight: bold ? 600 : 400 }}>{text}</p>
+    </div>
+  );
+}
+
 function Detail({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div style={{
-      background: accent ? '#fff1f2' : '#f8fafc',
-      border: `1px solid ${accent ? '#fecaca' : '#f1f5f9'}`,
-      borderRadius: 7,
-      padding: '10px 14px',
-      marginBottom: 10,
-    }}>
-      <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: accent ? '#991b1b' : '#94a3b8', letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 3 }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 13, color: accent ? '#7f1d1d' : '#374151', lineHeight: 1.55 }}>
-        {value}
-      </span>
+    <div style={{ background: accent ? '#fff1f2' : '#f8fafc', border: `1px solid ${accent ? '#fecaca' : '#f1f5f9'}`, borderRadius: 7, padding: '10px 14px', marginBottom: 10 }}>
+      <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: accent ? '#991b1b' : '#94a3b8', letterSpacing: '0.7px', textTransform: 'uppercase', marginBottom: 3 }}>{label}</span>
+      <span style={{ fontSize: 13, color: accent ? '#7f1d1d' : '#374151', lineHeight: 1.55 }}>{value}</span>
     </div>
   );
 }
