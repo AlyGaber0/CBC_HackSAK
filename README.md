@@ -1,4 +1,4 @@
-# ContextMD
+# RéponSanté
 
 Asynchronous medical triage navigation for the 2 million Quebecers without a family doctor.
 
@@ -14,7 +14,7 @@ When something non-emergency comes up, people without a family doctor have no go
 - **Emergency Room** — 50%+ of ER visits in Quebec are non-urgent; patients flood ERs because there's no structured alternative
 - **Google** — unstructured, anxiety-amplifying, no actionable next step
 
-ContextMD gives them a structured, asynchronous way to get a competent, evidence-grounded answer to: **"Should I worry about this, and what do I do next?"**
+RéponSanté gives them a structured, asynchronous way to get a competent, evidence-grounded answer to: **"Should I worry about this, and what do I do next?"**
 
 ---
 
